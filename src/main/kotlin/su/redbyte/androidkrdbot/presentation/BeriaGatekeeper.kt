@@ -40,9 +40,23 @@ fun startBeriaGatekeeper() {
             }
 
             command(BotCommands.STOP_VERIFICATION.commandName) {
+                val chatId = ChatId.fromId(message.chat.id)
+                val fromId = message.from?.id ?: return@command
+
+                val adminListResult = bot.getChatAdministrators(chatId)
+                val isAdmin = adminListResult.getOrNull()
+                    ?.any { it.user.id == fromId } ?: false
+
+                if (!isAdmin) {
+                    bot.sendMessage(
+                        chatId, "🚫 Только администрация может отдавать приказы товарищу Берии. Ваше поведение записано."
+                    )
+                    return@command
+                }
+
                 VerificationState.enabled = false
                 bot.sendMessage(
-                    ChatId.fromId(message.chat.id), """
+                    chatId, """
         🟡 Наблюдение временно приостановлено.
         Товарищ Берия убрал блокнот, но продолжает поглядывать одним глазом.
         Следите за порядком.
