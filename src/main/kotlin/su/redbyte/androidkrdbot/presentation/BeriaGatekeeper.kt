@@ -6,10 +6,12 @@ import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.message
 import com.github.kotlintelegrambot.entities.ChatId
 import io.github.cdimascio.dotenv.dotenv
+import su.redbyte.androidkrdbot.data.repository.ChatAdminRepository
 import su.redbyte.androidkrdbot.data.repository.QuestionRepository
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.model.BotCommands
+import su.redbyte.androidkrdbot.domain.usecase.CheckAdminRightsUseCase
 import su.redbyte.androidkrdbot.domain.usecase.CheckAnswerUseCase
 import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
 import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
@@ -24,7 +26,8 @@ fun startBeriaGatekeeper() {
     val getQuestion = GetRandomQuestionUseCase(questionRepo)
     val scheduleVerification = ScheduleVerificationUseCase(verificationRepo)
     val checkAnswer = CheckAnswerUseCase(verificationRepo)
-
+    val adminRepo = ChatAdminRepository()
+    val checkAdminRights = CheckAdminRightsUseCase(adminRepo)
     val bot = bot {
         this.token = token
         dispatch {
@@ -40,20 +43,17 @@ fun startBeriaGatekeeper() {
             }
 
             command(BotCommands.STOP_VERIFICATION.commandName) {
-                val chatId = ChatId.fromId(message.chat.id)
+                val rawChatId = message.chat.id
+                val chatId = ChatId.fromId(rawChatId)
                 val fromId = message.from?.id ?: return@command
-
-                val adminListResult = bot.getChatAdministrators(chatId)
-                val isAdmin = adminListResult.getOrNull()
-                    ?.any { it.user.id == fromId } ?: false
-
-                if (!isAdmin) {
+                if (!checkAdminRights(bot, rawChatId, fromId)) {
                     bot.sendMessage(
-                        chatId, "🚫 Только администрация может отдавать приказы товарищу Берии. Ваше поведение записано."
+                        chatId,
+                        "🚫 Только администрация может отдавать приказы товарищу Берии. Ваше поведение записано в досье."
                     )
                     return@command
                 }
-
+                println("OK")
                 VerificationState.enabled = false
                 bot.sendMessage(
                     chatId, """
