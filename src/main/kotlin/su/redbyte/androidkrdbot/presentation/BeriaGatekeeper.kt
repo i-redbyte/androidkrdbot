@@ -9,6 +9,7 @@ import io.github.cdimascio.dotenv.dotenv
 import su.redbyte.androidkrdbot.data.repository.QuestionRepository
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.VerificationState
+import su.redbyte.androidkrdbot.domain.model.BotCommands
 import su.redbyte.androidkrdbot.domain.usecase.CheckAnswerUseCase
 import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
 import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
@@ -26,9 +27,8 @@ fun startBeriaGatekeeper() {
 
     val bot = bot {
         this.token = token
-        //todo extract command to Enum
         dispatch {
-            command("startVerification") {
+            command(BotCommands.START_VERIFICATION.commandName) {
                 VerificationState.enabled = true
                 bot.sendMessage(
                     ChatId.fromId(message.chat.id), """
@@ -39,7 +39,7 @@ fun startBeriaGatekeeper() {
                 )
             }
 
-            command("stopVerification") {
+            command(BotCommands.STOP_VERIFICATION.commandName) {
                 VerificationState.enabled = false
                 bot.sendMessage(
                     ChatId.fromId(message.chat.id), """
@@ -50,9 +50,9 @@ fun startBeriaGatekeeper() {
                 )
             }
 
-            command("verificationStatus") {
+            command(BotCommands.VERIFICATION_STATUS.commandName) {
                 val status = if (VerificationState.enabled) "🟥 Активен — Берия следит лично 👁️"
-                else  "🟡 Неактивен — Берия выжидает 🕶️"
+                else "🟡 Неактивен — Берия выжидает 🕶️"
 
                 bot.sendMessage(
                     ChatId.fromId(message.chat.id), "📋 Статус режима верификации: $status"
