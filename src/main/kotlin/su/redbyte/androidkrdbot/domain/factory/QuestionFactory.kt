@@ -1,38 +1,34 @@
 package su.redbyte.androidkrdbot.domain.factory
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import su.redbyte.androidkrdbot.domain.model.Question
 
 object QuestionFactory {
-    private val questions = listOf(
-        Question(
-            "Назови любой цвет радуги.",
-            listOf(
-                "красный", "оранжевый", "жёлтый", "желтый", "зелёный", "зеленый",
-                "голубой", "синий", "фиолетовый",
-                "red", "orange", "yellow", "green", "blue", "indigo", "violet"
-            )
-        ),
-        Question(
-            "Назовите столицу СССР.",
-            listOf("москва", "moscow")
-        ),
-        Question(
-            "Сколько букв в слове «проверка»?",
-            listOf("8", "восемь", "eight")
-        ),
-        Question(
-            "Главный цвет флага СССР?",
-            listOf("красный", "red")
-        ),
-        Question(
-            "Какой язык программирования используется в Android-разработке?",
-            listOf("kotlin", "java", "котлин", "джава")
-        ),
-        Question(
-            "Сколько бит в одном байте?",
-            listOf("8", "восемь", "eight")
-        ),
-    )
+    private var questions: List<Question> = emptyList()
+
+    init {
+        loadQuestions()
+    }
 
     fun randomQuestion(): Question = questions.random()
+
+    fun reload(): Boolean {
+        return try {
+            loadQuestions()
+            true
+        } catch (e: Exception) {
+            println("❌ Ошибка при загрузке вопросов: ${e.message}")
+            false
+        }
+    }
+
+    private fun loadQuestions() {
+        val inputStream = javaClass.classLoader.getResourceAsStream("questions.json")
+            ?: error("❌ Файл questions.json не найден в resources!")
+
+        val mapper = jacksonObjectMapper()
+        questions = mapper.readValue(inputStream)
+        println("✅ Загружено ${questions.size} вопросов из questions.json")
+    }
 }

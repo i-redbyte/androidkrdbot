@@ -10,6 +10,8 @@ version = "1.0"
 dependencies {
     implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:6.3.0")
     implementation("io.github.cdimascio:dotenv-kotlin:6.5.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+
 }
 
 tasks.test {

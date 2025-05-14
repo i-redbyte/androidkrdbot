@@ -16,4 +16,8 @@ enum class BotCommands(
         commandName = "verificationStatus",
         description = "Узнать статус проверки"
     ),
+    RELOAD_QUESTIONS(
+        commandName = "reloadQuestions",
+        description = "Перезагрузить файл с вопросами"
+    ),
 }

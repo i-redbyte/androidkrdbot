@@ -10,6 +10,7 @@ import su.redbyte.androidkrdbot.data.repository.ChatAdminRepository
 import su.redbyte.androidkrdbot.data.repository.QuestionRepository
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.VerificationState
+import su.redbyte.androidkrdbot.domain.factory.QuestionFactory
 import su.redbyte.androidkrdbot.domain.model.BotCommands
 import su.redbyte.androidkrdbot.domain.usecase.CheckAdminRightsUseCase
 import su.redbyte.androidkrdbot.domain.usecase.CheckAnswerUseCase
@@ -72,7 +73,22 @@ fun startBeriaGatekeeper() {
                     ChatId.fromId(message.chat.id), "📋 Статус режима верификации: $status"
                 )
             }
+            command(BotCommands.RELOAD_QUESTIONS.commandName) {
+                val chatId = ChatId.fromId(message.chat.id)
+                val userId = message.from?.id ?: return@command
 
+                if (!checkAdminRights(bot, chatId.id, userId)) {
+                    bot.sendMessage(chatId, "🚫 Только администрация может вмешиваться в арсенал товарища Берии.")
+                    return@command
+                }
+
+                val success = QuestionFactory.reload()
+                if (success) {
+                    bot.sendMessage(chatId, "✅ Вопросы успешно перезагружены. Товарищ Берия принял новые директивы.")
+                } else {
+                    bot.sendMessage(chatId, "❌ Ошибка при перезагрузке вопросов. Проверка остановлена.")
+                }
+            }
 
             message {
                 val newMembers = message.newChatMembers
