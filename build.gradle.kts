@@ -17,7 +17,7 @@ tasks.test {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("su.redbyte.androidkrdbot.cli.ChatCommissarKt")
 }
 
 kotlin {
