@@ -1,27 +1,47 @@
 package su.redbyte.androidkrdbot.domain.usecase
 
 import com.github.kotlintelegrambot.Bot
+import com.github.kotlintelegrambot.types.TelegramBotResult
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
-import java.util.*
 
 class CheckAnswerUseCase(
-    private val verificationRepo: VerificationRepository
+    private val verificationRepository: VerificationRepository
 ) {
-    operator fun invoke(userId: Long, answer: String, bot: Bot) {
-        val verification = verificationRepo.get(userId) ?: return
-        if (verification.question.isCorrect(answer.lowercase(Locale.getDefault()))) {
-            bot.sendMessage(
-                verification.chatId,
-                "${verification.user.firstName} успешно прошёл проверку! Добро пожаловать."
-            )
+    operator fun invoke(
+        userId: Long,
+        answer: String,
+        bot: Bot
+    ) {
+        val verification = verificationRepository.get(userId) ?: return
+        val chatId = verification.chatId
+        val user = verification.user
+
+        if (verification.question.isCorrect(answer)) {
+            bot.sendMessage(chatId, "${user.firstName} успешно прошёл проверку! Добро пожаловать.")
+            println("✅ ${user.firstName} прошёл проверку")
+            verificationRepository.remove(userId)
         } else {
-            bot.banChatMember(verification.chatId, userId)
-            bot.unbanChatMember(verification.chatId, userId)
-            bot.sendMessage(
-                verification.chatId,
-                "${verification.user.firstName} дал неправильный ответ и был удалён."
-            )
+            when (val result = bot.getChatMember(chatId, userId)) {
+                is TelegramBotResult.Success -> {
+                    val status = result.value.status
+                    println("👁️ [ANSWER] Статус ${user.firstName}: $status")
+
+                    if (status != "left" && status != "kicked") {
+                        bot.banChatMember(chatId, userId)
+                        bot.unbanChatMember(chatId, userId)
+                        bot.sendMessage(chatId, "Товарищ ${user.firstName} дал неправильный ответ и был удалён.")
+                        println("✅ ${user.firstName} удалён за неправильный ответ")
+                    } else {
+                        println("👻 ${user.firstName} уже не в чате")
+                    }
+                }
+
+                is TelegramBotResult.Error -> {
+                    println("❌ [ANSWER] Ошибка при getChatMember:")
+                }
+            }
+
+            verificationRepository.remove(userId)
         }
-        verificationRepo.remove(userId)
     }
 }

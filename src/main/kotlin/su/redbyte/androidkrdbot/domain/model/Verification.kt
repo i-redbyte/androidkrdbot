@@ -6,6 +6,5 @@ import com.github.kotlintelegrambot.entities.User
 data class Verification(
     val user: User,
     val chatId: ChatId,
-    val question: Question,
-    val timestamp: Long
+    val question: Question
 )
