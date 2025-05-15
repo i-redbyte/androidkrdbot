@@ -29,7 +29,7 @@ class ScheduleVerificationUseCase(
         timer(
             name = "verify-${user.id}",
             daemon = true,
-            initialDelay = TIMEOUT_SEC,
+            initialDelay = TIMEOUT_MILLIS,
             period = 0
         ) {
             if (verificationRepository.contains(user.id)) {
@@ -43,6 +43,6 @@ class ScheduleVerificationUseCase(
     }
 
     companion object {
-        private const val TIMEOUT_SEC = 90L * 1000
+        private const val TIMEOUT_MILLIS = 90L * 1000
     }
 }
