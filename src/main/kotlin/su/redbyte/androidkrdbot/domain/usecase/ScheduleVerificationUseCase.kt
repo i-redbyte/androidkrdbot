@@ -26,6 +26,12 @@ class ScheduleVerificationUseCase(
         Timer("verify-${user.id}", true).schedule(object : TimerTask() {
             override fun run() {
                 println("⏰ [TIMER] Сработал таймер для ${user.firstName} (${user.id})")
+
+                if (!verificationRepository.contains(user.id)) {
+                    println("✅ [TIMER] ${user.firstName} уже прошёл/провалил проверку — пропуск удаления")
+                    return
+                }
+
                 verificationRepository.remove(user.id)
 
                 when (val result = bot.getChatMember(chatId, user.id)) {

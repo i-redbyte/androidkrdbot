@@ -17,10 +17,11 @@ class CheckAnswerUseCase(
         val chatId = verification.chatId
         val user = verification.user
 
+        verificationRepository.remove(userId)
+
         if (verification.question.isCorrect(answer)) {
             bot.sendMessage(chatId, "${user.candidateName()} успешно прошёл проверку! Добро пожаловать.")
             println("✅ ${user.candidateName()} прошёл проверку")
-            verificationRepository.remove(userId)
         } else {
             when (val result = bot.getChatMember(chatId, userId)) {
                 is TelegramBotResult.Success -> {
@@ -41,8 +42,6 @@ class CheckAnswerUseCase(
                     println("❌ [ANSWER] Ошибка при getChatMember:")
                 }
             }
-
-            verificationRepository.remove(userId)
         }
     }
 }
