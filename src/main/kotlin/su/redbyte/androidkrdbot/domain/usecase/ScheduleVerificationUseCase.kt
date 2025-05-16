@@ -7,6 +7,7 @@ import com.github.kotlintelegrambot.types.TelegramBotResult
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.model.Verification
+import su.redbyte.androidkrdbot.presentation.candidateName
 import java.util.Timer
 import java.util.TimerTask
 
@@ -35,7 +36,7 @@ class ScheduleVerificationUseCase(
                         if (status != "left" && status != "kicked") {
                             bot.banChatMember(chatId, user.id)
                             bot.unbanChatMember(chatId, user.id)
-                            bot.sendMessage(chatId, "Товарищ ${user.firstName} не прошёл проверку и был удалён.")
+                            bot.sendMessage(chatId, "Товарищ ${user.candidateName()} не прошёл проверку и был удалён.")
                             println("✅ ${user.firstName} удалён по таймеру")
                         } else {
                             println("👻 ${user.firstName} покинул чат до проверки")

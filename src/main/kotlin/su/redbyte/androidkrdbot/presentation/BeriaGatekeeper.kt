@@ -5,6 +5,7 @@ import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.message
 import com.github.kotlintelegrambot.entities.ChatId
+import com.github.kotlintelegrambot.entities.User
 import io.github.cdimascio.dotenv.dotenv
 import su.redbyte.androidkrdbot.data.repository.ChatAdminRepository
 import su.redbyte.androidkrdbot.data.repository.QuestionRepository
@@ -109,11 +110,9 @@ fun startBeriaGatekeeper() {
                     if (VerificationState.enabled) {
                         newMembers.forEach { user ->
                             val question = getQuestion()
-                            val introText = "Привет, ${user.firstName}! Ответь на вопрос:\n${question.text}"
-
-                            bot.sendMessage(chatId, introText) // ✅ теперь сообщение в группе
-
-                            println("📨 Вопрос задан ${user.firstName} (${user.id}) в чате ${chatId}")
+                            val introText = "Привет, ${user.candidateName()}! Ответь на вопрос:\n${question.text}"
+                            bot.sendMessage(chatId, introText)
+                            println("📨 Вопрос задан ${user.firstName} (${user.id}) в чате $chatId")
                             scheduleVerification(user, chatId, question, bot)
                         }
                     } else {
@@ -138,3 +137,5 @@ fun startBeriaGatekeeper() {
 
     bot.startPolling()
 }
+
+fun User.candidateName(): String = username?.let { "@$it" } ?: firstName
