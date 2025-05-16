@@ -108,7 +108,12 @@ fun startBeriaGatekeeper() {
                     println("🛡 Статус режима верификации: ${VerificationState.enabled}")
 
                     if (VerificationState.enabled) {
+                        val botId = bot.getMe().get().id
                         newMembers.forEach { user ->
+                            if (user.id == botId) {
+                                println("🤖 Бот добавлен в чат, игнорируем.")
+                                return@forEach
+                            }
                             val question = getQuestion()
                             val introText = "Привет, ${user.candidateName()}! Ответь на вопрос:\n${question.text}"
                             bot.sendMessage(chatId, introText)
