@@ -6,6 +6,7 @@ from pyrogram import Client
 chat_username = "androidkrd"
 
 async def get_members(api_id: int, api_hash: str):
+    # print("Starting Pyrogram client...", file=sys.stderr)
     app = Client("bot_auth", api_id=api_id, api_hash=api_hash)
     async with app:
         try:
@@ -18,7 +19,7 @@ async def get_members(api_id: int, api_hash: str):
                     "name": user.first_name or "",
                     "userName": user.username or ""
                 })
-            # print(json.dumps(members))  # to stdout
+            print(json.dumps(members))  # to stdout
         except Exception as e:
             print(f"ERROR: {e}", file=sys.stderr)
 
