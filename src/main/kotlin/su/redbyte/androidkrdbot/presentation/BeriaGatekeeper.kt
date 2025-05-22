@@ -13,23 +13,28 @@ import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.factory.QuestionFactory
 import su.redbyte.androidkrdbot.domain.model.BotCommands
-import su.redbyte.androidkrdbot.domain.usecase.CheckAdminRightsUseCase
-import su.redbyte.androidkrdbot.domain.usecase.CheckAnswerUseCase
-import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
-import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
+import su.redbyte.androidkrdbot.domain.usecase.*
+import su.redbyte.androidkrdbot.utils.fetchMembers
 
 fun startBeriaGatekeeper() {
     val dotenv = dotenv()
     val token = dotenv["TELEGRAM_BOT_TOKEN"] ?: error("TELEGRAM_BOT_TOKEN is not set")
+    val apiId = dotenv["API_ID"] ?: error("API_ID is not set")
+    val apiHash = dotenv["API_HASH"] ?: error("API_HASH is not set")
 
-    val questionRepo = QuestionRepository()
-    val verificationRepo = VerificationRepository()
-    val getQuestion = GetRandomQuestionUseCase(questionRepo)
-    val scheduleVerification = ScheduleVerificationUseCase(verificationRepo)
-    val checkAnswer = CheckAnswerUseCase(verificationRepo)
-    val adminRepo = ChatAdminRepository()
-    val checkAdminRights = CheckAdminRightsUseCase(adminRepo)
-
+    val questionRepository = QuestionRepository()
+    val verificationRepository = VerificationRepository()
+    val chatAdminRepository = ChatAdminRepository()
+    val getQuestion = GetRandomQuestionUseCase(questionRepository)
+    val scheduleVerification = ScheduleVerificationUseCase(verificationRepository)
+    val checkAnswer = CheckAnswerUseCase(verificationRepository)
+    val checkAdminRights = CheckAdminRightsUseCase(chatAdminRepository)
+    val fetchMembersUseCase = FetchMembersUseCase()
+//    fetchMembersUseCase(apiId, apiHash).forEach { member ->
+//        println(
+//            String.format("%-30s | %-30s | %-20s", member.name, member.userName, member.id)
+//        )
+//    }
     val bot = bot {
         this.token = token
 
