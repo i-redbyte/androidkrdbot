@@ -8,13 +8,13 @@ import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.User
 import io.github.cdimascio.dotenv.dotenv
 import su.redbyte.androidkrdbot.data.repository.ChatAdminRepository
+import su.redbyte.androidkrdbot.data.repository.InterrogationRepository
 import su.redbyte.androidkrdbot.data.repository.QuestionRepository
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.factory.QuestionFactory
 import su.redbyte.androidkrdbot.domain.model.BotCommands
 import su.redbyte.androidkrdbot.domain.usecase.*
-import su.redbyte.androidkrdbot.utils.fetchMembers
 
 fun startBeriaGatekeeper() {
     val dotenv = dotenv()
@@ -25,16 +25,13 @@ fun startBeriaGatekeeper() {
     val questionRepository = QuestionRepository()
     val verificationRepository = VerificationRepository()
     val chatAdminRepository = ChatAdminRepository()
+    val interrogationRepository = InterrogationRepository()
+    val checkComrades = CheckBanUseCase(interrogationRepository)
     val getQuestion = GetRandomQuestionUseCase(questionRepository)
     val scheduleVerification = ScheduleVerificationUseCase(verificationRepository)
     val checkAnswer = CheckAnswerUseCase(verificationRepository)
     val checkAdminRights = CheckAdminRightsUseCase(chatAdminRepository)
     val fetchMembersUseCase = FetchMembersUseCase()
-//    fetchMembersUseCase(apiId, apiHash).forEach { member ->
-//        println(
-//            String.format("%-30s | %-30s | %-20s", member.name, member.userName, member.id)
-//        )
-//    }
     val bot = bot {
         this.token = token
 
@@ -104,7 +101,23 @@ fun startBeriaGatekeeper() {
                     bot.sendMessage(chatId, "❌ Ошибка при перезагрузке вопросов. Проверка остановлена.")
                 }
             }
+            command(BotCommands.INTERROGATION.commandName) {
+                val comrades = fetchMembersUseCase(apiId, apiHash) //TODO: fix logic
+                val chatId = ChatId.fromId(message.chat.id)
+                val comrad = comrades.random()
+                val username = if (comrad.userName.isNotEmpty()) "он же ${comrad.userName}" else ""
+                bot.sendMessage(chatId, "🔍 Проверяю товарища ${comrad.name} $username ...")
 
+                val banned = checkComrades(comrad.id)
+
+                val resultText = if (banned) {
+                    "🚫 Товарищ ${comrad.name} занесён в чёрный список!"
+                } else {
+                    "✅ Товарищ ${comrad.name} чист перед партией."
+                }
+
+                bot.sendMessage(chatId, resultText)
+            }
             message {
                 val newMembers = message.newChatMembers
                 if (newMembers != null) {

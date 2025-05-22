@@ -20,4 +20,8 @@ enum class BotCommands(
         commandName = "reloadQuestions",
         description = "Перезагрузить файл с вопросами"
     ),
+    INTERROGATION(
+        commandName = "interrogation",
+        description = "Проверить на принадлежность к ботам через внешние источники"
+    ),
 }
