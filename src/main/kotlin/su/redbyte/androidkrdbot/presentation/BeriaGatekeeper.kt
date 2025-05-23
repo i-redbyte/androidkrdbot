@@ -1,5 +1,6 @@
 package su.redbyte.androidkrdbot.presentation
 
+import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.command
@@ -7,15 +8,20 @@ import com.github.kotlintelegrambot.dispatcher.message
 import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.User
 import io.github.cdimascio.dotenv.dotenv
-import su.redbyte.androidkrdbot.data.repository.ChatAdminRepository
-import su.redbyte.androidkrdbot.data.repository.InterrogationRepository
-import su.redbyte.androidkrdbot.data.repository.QuestionRepository
-import su.redbyte.androidkrdbot.data.repository.VerificationRepository
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import su.redbyte.androidkrdbot.data.repository.*
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.factory.QuestionFactory
 import su.redbyte.androidkrdbot.domain.model.BotCommands
+import su.redbyte.androidkrdbot.domain.model.Comrade
+import su.redbyte.androidkrdbot.domain.model.InterrogationState
+import su.redbyte.androidkrdbot.domain.model.InterrogationState.*
 import su.redbyte.androidkrdbot.domain.usecase.*
 
+@OptIn(DelicateCoroutinesApi::class)
 fun startBeriaGatekeeper() {
     val dotenv = dotenv()
     val token = dotenv["TELEGRAM_BOT_TOKEN"] ?: error("TELEGRAM_BOT_TOKEN is not set")
@@ -31,7 +37,12 @@ fun startBeriaGatekeeper() {
     val scheduleVerification = ScheduleVerificationUseCase(verificationRepository)
     val checkAnswer = CheckAnswerUseCase(verificationRepository)
     val checkAdminRights = CheckAdminRightsUseCase(chatAdminRepository)
-    val fetchMembersUseCase = FetchMembersUseCase()
+    val comradesRepository = ComradesRepository(apiId, apiHash)
+    val fetchComradesUseCase = FetchComradesUseCase(comradesRepository)
+    runBlocking {
+        val preloaded = fetchComradesUseCase()
+        println("📦 Загрузили ${preloaded.size} товарищей в кэш. ${preloaded.random()}!!!")
+    }
     val bot = bot {
         this.token = token
 
@@ -55,7 +66,7 @@ fun startBeriaGatekeeper() {
                 if (!checkAdminRights(bot, rawChatId, fromId)) {
                     bot.sendMessage(
                         chatId,
-                        "🚫 Только администрация может отдавать приказы товарищу Берии. Ваше поведение записано в досье."
+                        "🚫 Только партийное руководство может отдавать приказы товарищу Берии. Ваше поведение записано в досье."
                     )
                     return@command
                 }
@@ -102,22 +113,54 @@ fun startBeriaGatekeeper() {
                 }
             }
             command(BotCommands.INTERROGATION.commandName) {
-                val comrades = fetchMembersUseCase(apiId, apiHash) //TODO: fix logic
                 val chatId = ChatId.fromId(message.chat.id)
-                val comrad = comrades.random()
-                val username = if (comrad.userName.isNotEmpty()) "он же ${comrad.userName}" else ""
-                bot.sendMessage(chatId, "🔍 Проверяю товарища ${comrad.name} $username ...")
+                GlobalScope.launch {
+                    val comrades = fetchComradesUseCase()
 
-                val banned = checkComrades(comrad.id)
+                    when {
+                        args.isEmpty() -> {
+                            val comrade = comrades.randomOrNull()
+                            if (comrade != null) {
+                                checkAndRespond(bot, chatId, comrade, SINGLE, checkComrades::invoke)
+                            } else {
+                                println("❌ Нет товарищей для проверки.")
+                            }
+                        }
 
-                val resultText = if (banned) {
-                    "🚫 Товарищ ${comrad.name} занесён в чёрный список!"
-                } else {
-                    "✅ Товарищ ${comrad.name} чист перед партией."
+                        args[0] == "all" -> {
+                            val rawChatId = message.chat.id
+                            val fromId = message.from?.id ?: return@launch
+                            if (!checkAdminRights(bot, rawChatId, fromId)) {
+                                bot.sendMessage(
+                                    chatId,
+                                    "🚫 Только партийное руководство может отдавать приказы товарищу Берии. Ваше поведение записано в досье."
+                                )
+                                return@launch
+                            }
+                            bot.sendMessage(chatId, "🔍 Началась проверка всех товарищей...")
+                            comrades.forEach {
+                                checkAndRespond(bot, chatId, it, ALL, checkComrades::invoke)
+                            }
+                        }
+
+                        args[0].startsWith("@") -> {
+                            val username = args[0].trimStart('@')
+                            val comrade = fetchComradesUseCase.findByUsername(username)
+                            if (comrade != null) {
+                                checkAndRespond(bot, chatId, comrade, SINGLE, checkComrades::invoke)
+                            } else {
+                                println("❓ Товарищ @$username[$chatId] не найден в кэше.")
+                            }
+                        }
+
+                        else -> bot.sendMessage(
+                            chatId,
+                            "⚠️ Используйте: /interrogation, /interrogation all или /interrogation @username"
+                        )
+                    }
                 }
-
-                bot.sendMessage(chatId, resultText)
             }
+
             message {
                 val newMembers = message.newChatMembers
                 if (newMembers != null) {
@@ -149,6 +192,18 @@ fun startBeriaGatekeeper() {
                 val answer = message.text ?: return@message
                 checkAnswer(userId, answer, bot)
             }
+            message {
+                val user = message.from
+                if (user != null) {
+                    GlobalScope.launch {
+                        val known = fetchComradesUseCase.findById(user.id)
+                        if (known == null) {
+                            println("🆕 Новый пользователь ${user.firstName} (${user.id}) — пробуем добавить в кэш.")
+                            fetchComradesUseCase.ensureCached(user.id)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -159,6 +214,39 @@ fun startBeriaGatekeeper() {
     })
 
     bot.startPolling()
+}
+
+private suspend fun checkAndRespond(
+    bot: Bot,
+    chatId: ChatId,
+    comrade: Comrade,
+    state: InterrogationState,
+    checkComrades: suspend (Long) -> Boolean
+) {
+    val usernamePart = if (comrade.userName.isNotEmpty()) "он же @${comrade.userName}" else ""
+    when (state) {
+        SINGLE -> bot.sendMessage(chatId, "🔍 Проверяю товарища ${comrade.name} $usernamePart ...")
+        ALL -> println("🔍 Проверяю товарища ${comrade.name} $usernamePart ...")
+    }
+
+    val banned = checkComrades(comrade.id)
+
+    val resultText = if (banned) {
+        """
+📣 По данным Службы внешней разведки, товарищ ${comrade.name} признан врагом народа!
+Он приговаривается к высшей мере наказания.
+        """
+    } else {
+        "✅ Товарищ ${comrade.name} чист перед партией."
+    }
+    if (banned) {
+        bot.banChatMember(chatId, comrade.id)
+        bot.unbanChatMember(chatId, comrade.id)
+        bot.sendMessage(chatId, resultText)
+    } else when (state) {
+        SINGLE -> bot.sendMessage(chatId, resultText)
+        ALL -> println(resultText)
+    }
 }
 
 fun User.candidateName(): String = username?.let { "@$it" } ?: firstName
