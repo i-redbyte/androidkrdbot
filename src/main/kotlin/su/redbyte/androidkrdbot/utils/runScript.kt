@@ -1,13 +1,14 @@
 package su.redbyte.androidkrdbot.utils
 
 import java.io.File
-import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
-import su.redbyte.androidkrdbot.domain.model.Member
+import su.redbyte.androidkrdbot.domain.model.Comrade
 import java.lang.ProcessBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
-fun fetchMembers(apiId: String, apiHash: String): List<Member> {
+suspend fun fetchComrades(apiId: String, apiHash: String): List<Comrade> = withContext(Dispatchers.IO) {
     val scriptPath = "/Users/red_byte/IdeaProjects/androidkrdbot/scipt/members_exporter.py"
     val scriptFile = File(scriptPath).also {
         if (!it.exists()) error("Script file not found at path: $scriptPath")
@@ -33,5 +34,5 @@ fun fetchMembers(apiId: String, apiHash: String): List<Member> {
         error("Failed to fetch members. Output:\n$fullOutput")
     }
 
-    return Json.decodeFromString(output)
+    Json.decodeFromString(output)
 }
