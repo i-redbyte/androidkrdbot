@@ -10,11 +10,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-
-@Serializable
-data class LolsBotResponse(
-    @SerialName("banned") val banned: Boolean
-)
+import su.redbyte.androidkrdbot.data.model.LolsBotResponse
 
 class InterrogationRepository {
 
