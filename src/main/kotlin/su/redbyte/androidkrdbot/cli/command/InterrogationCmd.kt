@@ -3,7 +3,6 @@ package su.redbyte.androidkrdbot.cli.command
 import com.github.kotlintelegrambot.entities.ChatId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import su.redbyte.androidkrdbot.domain.model.BotCommands
 import su.redbyte.androidkrdbot.domain.model.InterrogationState.*
 import su.redbyte.androidkrdbot.domain.model.Comrade
 import su.redbyte.androidkrdbot.domain.usecase.FetchComradesUseCase
@@ -14,7 +13,7 @@ class InterrogationCmd(
     private val fetchComrades: FetchComradesUseCase,
     private val checkBan: CheckBanUseCase
 ) : BotCommand {
-    override val name: String = BotCommands.INTERROGATION.commandName
+    override val name: String = Commands.INTERROGATION.commandName
 
     override suspend fun handle(ctx: CommandContext) {
         val chatId = ctx.chatId
@@ -30,6 +29,7 @@ class InterrogationCmd(
                     val uid = ctx.userId ?: return@launch
                     ctx.reply("🔍 Началась проверка всех товарищей...")
                     comrades.forEach { checkAndRespond(ctx, chatId, it, ALL) }
+                    ctx.reply("🔍 Проверка окончена")
                 }
 
                 ctx.args[0].startsWith("@") -> {

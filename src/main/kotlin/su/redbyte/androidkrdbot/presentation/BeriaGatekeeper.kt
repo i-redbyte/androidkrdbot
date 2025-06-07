@@ -15,7 +15,7 @@ import kotlinx.coroutines.runBlocking
 import su.redbyte.androidkrdbot.data.repository.*
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.factory.QuestionFactory
-import su.redbyte.androidkrdbot.domain.model.BotCommands
+import su.redbyte.androidkrdbot.cli.command.Commands
 import su.redbyte.androidkrdbot.domain.model.Comrade
 import su.redbyte.androidkrdbot.domain.model.InterrogationState
 import su.redbyte.androidkrdbot.domain.model.InterrogationState.*
@@ -47,7 +47,7 @@ fun startBeriaGatekeeper() {
         this.token = token
 
         dispatch {
-            command(BotCommands.START_VERIFICATION.commandName) {
+            command(Commands.START_VERIFICATION.commandName) {
                 VerificationState.enabled = true
                 bot.sendMessage(
                     ChatId.fromId(message.chat.id), """
@@ -58,7 +58,7 @@ fun startBeriaGatekeeper() {
                 )
             }
 
-            command(BotCommands.STOP_VERIFICATION.commandName) {
+            command(Commands.STOP_VERIFICATION.commandName) {
                 val rawChatId = message.chat.id
                 val chatId = ChatId.fromId(rawChatId)
                 val fromId = message.from?.id ?: return@command
@@ -81,7 +81,7 @@ fun startBeriaGatekeeper() {
                 )
             }
 
-            command(BotCommands.VERIFICATION_STATUS.commandName) {
+            command(Commands.VERIFICATION_STATUS.commandName) {
                 val status = if (VerificationState.enabled)
                     "🟥 Активен — Берия следит лично 👁️"
                 else
@@ -93,7 +93,7 @@ fun startBeriaGatekeeper() {
                 )
             }
 
-            command(BotCommands.RELOAD_QUESTIONS.commandName) {
+            command(Commands.RELOAD_QUESTIONS.commandName) {
                 val chatId = ChatId.fromId(message.chat.id)
                 val userId = message.from?.id ?: return@command
 
@@ -112,7 +112,7 @@ fun startBeriaGatekeeper() {
                     bot.sendMessage(chatId, "❌ Ошибка при перезагрузке вопросов. Проверка остановлена.")
                 }
             }
-            command(BotCommands.INTERROGATION.commandName) {
+            command(Commands.INTERROGATION.commandName) {
                 val chatId = ChatId.fromId(message.chat.id)
                 GlobalScope.launch {
                     val comrades = fetchComradesUseCase()
