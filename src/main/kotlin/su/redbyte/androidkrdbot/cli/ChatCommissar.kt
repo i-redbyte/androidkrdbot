@@ -31,11 +31,11 @@ fun main() {
     val checkBan = CheckBanUseCase(interrogationRepo)
     val fetchComrades = FetchComradesUseCase(comradesRepo)
     val verificationState = VerificationState
-    runBlocking {
-        val preloaded = fetchComrades()
-        println("📦 Загрузили ${preloaded.size} товарищей. ${preloaded.random()}!!!")
-    }
 
+    appScope.launch {
+        val comrades = fetchComrades()
+        println("📦 Загрузили ${comrades.size} товарищей. ${comrades.random()}!!!")
+    }
     val commands = listOf(
         StartVerificationCmd(verificationState),
         StopVerificationCmd(verificationState),
