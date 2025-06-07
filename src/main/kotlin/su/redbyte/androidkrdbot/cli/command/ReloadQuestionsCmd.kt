@@ -1,11 +1,10 @@
 package su.redbyte.androidkrdbot.cli.command
 
 import su.redbyte.androidkrdbot.domain.factory.QuestionFactory
-import su.redbyte.androidkrdbot.domain.model.BotCommands
 
 @RequireAdmin
 class ReloadQuestionsCmd() : BotCommand {
-    override val name: String = BotCommands.RELOAD_QUESTIONS.commandName
+    override val name: String = Commands.RELOAD_QUESTIONS.commandName
     override suspend fun handle(ctx: CommandContext) {
         val success = QuestionFactory.reload()
         if (success) {

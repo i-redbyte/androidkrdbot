@@ -1,14 +1,13 @@
 package su.redbyte.androidkrdbot.cli.command
 
 import su.redbyte.androidkrdbot.domain.VerificationState
-import su.redbyte.androidkrdbot.domain.model.BotCommands
 
 @RequireAdmin
 class StopVerificationCmd(
     private val verification: VerificationState,
 ) : BotCommand {
 
-    override val name = BotCommands.STOP_VERIFICATION.commandName
+    override val name = Commands.STOP_VERIFICATION.commandName
 
     override suspend fun handle(ctx: CommandContext) {
         verification.enabled = false

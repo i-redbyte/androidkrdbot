@@ -1,6 +1,6 @@
-package su.redbyte.androidkrdbot.domain.model
+package su.redbyte.androidkrdbot.cli.command
 
-enum class BotCommands(
+enum class Commands(
     val commandName: String,
     val description: String
 ) {
