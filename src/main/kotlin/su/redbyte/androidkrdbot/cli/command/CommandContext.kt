@@ -13,7 +13,7 @@ class CommandContext(
     val rawChatId: Long = message.chat.id
     val userId: Long? = message.from?.id
 
-    suspend fun reply(text: String) =
+    fun reply(text: String) =
         bot.sendMessage(chatId, text)
 
 }

@@ -27,6 +27,7 @@ fun main() {
     val scheduleVerification = ScheduleVerificationUseCase(verificationRepo)
     val checkAnswer = CheckAnswerUseCase(verificationRepo)
     val checkAdminRights = CheckAdminRightsUseCase(chatAdminRepo)
+    val getAdmins = GetAdminsUseCase(chatAdminRepo)
     val checkBan = CheckBanUseCase(interrogationRepo)
     val fetchComrades = FetchComradesUseCase(comradesRepo)
     val verificationState = VerificationState
@@ -40,7 +41,8 @@ fun main() {
         StopVerificationCmd(verificationState),
         VerificationStatusCmd(verificationState),
         ReloadQuestionsCmd(),
-        InterrogationCmd(appScope, fetchComrades, checkBan)
+        InterrogationCmd(appScope, fetchComrades, checkBan),
+        ShowPolitburoMembersCmd(getAdmins)
     )
 
     val listeners = listOf(

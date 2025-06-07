@@ -24,4 +24,8 @@ enum class Commands(
         commandName = "interrogation",
         description = "Проверить на принадлежность к ботам через внешние источники"
     ),
+    POLITBURO(
+        commandName = "politburo",
+        description = "Вывести список всех администраторов чата"
+    ),
 }
