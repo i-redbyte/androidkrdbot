@@ -1,11 +1,5 @@
 package su.redbyte.androidkrdbot.cli
 
-import su.redbyte.androidkrdbot.presentation.startBeriaGatekeeper
-
-//fun main() {
-//    startBeriaGatekeeper()
-//}
-
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.*
 import su.redbyte.androidkrdbot.cli.command.*
