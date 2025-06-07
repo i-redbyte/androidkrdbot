@@ -7,7 +7,6 @@ import com.github.kotlintelegrambot.types.TelegramBotResult
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.model.Verification
-import su.redbyte.androidkrdbot.presentation.candidateName
 import java.util.Timer
 import java.util.TimerTask
 

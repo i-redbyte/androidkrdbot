@@ -3,7 +3,6 @@ package su.redbyte.androidkrdbot.domain.usecase
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.types.TelegramBotResult
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
-import su.redbyte.androidkrdbot.presentation.candidateName
 
 class CheckAnswerUseCase(
     private val verificationRepository: VerificationRepository
@@ -45,3 +44,4 @@ class CheckAnswerUseCase(
         }
     }
 }
+
