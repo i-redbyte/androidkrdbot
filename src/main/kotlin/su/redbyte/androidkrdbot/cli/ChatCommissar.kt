@@ -53,6 +53,10 @@ fun main() {
         CacheComradeListener(appScope, fetchComrades)
     )
 
+    val chatMemberListeners = listOf(
+        VerificationChatMemberListener(getRandomQuestion, scheduleVerification)
+    )
+
     val adminOnly = AdminOnly(checkAdminRights)
     val rateLimit = RateLimit()
     val globalMW = listOf<Middleware>(rateLimit)
@@ -63,7 +67,8 @@ fun main() {
         commands = commands,
         globalMiddlewares = globalMW,
         adminOnly = adminOnly,
-        messageListeners = listeners
+        messageListeners = listeners,
+        chatMemberListeners = chatMemberListeners
     )
 
     Runtime.getRuntime().addShutdownHook(Thread {
