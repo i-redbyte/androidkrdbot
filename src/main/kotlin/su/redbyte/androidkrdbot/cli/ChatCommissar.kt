@@ -6,6 +6,8 @@ import su.redbyte.androidkrdbot.cli.command.*
 import su.redbyte.androidkrdbot.cli.engine.BotEngine
 import su.redbyte.androidkrdbot.cli.message.*
 import su.redbyte.androidkrdbot.cli.middleware.AdminOnly
+import su.redbyte.androidkrdbot.cli.middleware.Middleware
+import su.redbyte.androidkrdbot.cli.middleware.RateLimit
 import su.redbyte.androidkrdbot.data.repository.*
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.usecase.*
@@ -52,7 +54,8 @@ fun main() {
     )
 
     val adminOnly = AdminOnly(checkAdminRights)
-    val globalMW = emptyList<su.redbyte.androidkrdbot.cli.middleware.Middleware>()
+    val rateLimit = RateLimit()
+    val globalMW = listOf<Middleware>(rateLimit)
 
     val engine = BotEngine(
         token = token,
