@@ -2,13 +2,16 @@ package su.redbyte.androidkrdbot.cli.command
 
 import com.github.kotlintelegrambot.entities.ChatId
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import su.redbyte.androidkrdbot.data.repository.MessageCache
 import su.redbyte.androidkrdbot.domain.model.InterrogationState.*
 import su.redbyte.androidkrdbot.domain.model.Comrade
 import su.redbyte.androidkrdbot.domain.usecase.FetchComradesUseCase
 import su.redbyte.androidkrdbot.domain.usecase.CheckBanUseCase
+import su.redbyte.androidkrdbot.utils.deleteMessagesFromBot
 import su.redbyte.androidkrdbot.utils.deleteMessagesFromUser
+import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
 
 class InterrogationCmd(
     private val scope: CoroutineScope,
@@ -52,7 +55,7 @@ class InterrogationCmd(
         state: su.redbyte.androidkrdbot.domain.model.InterrogationState
     ) {
         val usernamePart = if (comrade.userName.isNotEmpty()) "он же @${comrade.userName}" else ""
-        if (state == SINGLE) ctx.bot.sendMessage(chatId, "🔍 Проверяю товарища ${comrade.name} $usernamePart ...")
+        if (state == SINGLE) ctx.reply("🔍 Проверяю товарища ${comrade.name} $usernamePart ...")
         val banned = checkBan(comrade.id)
         val resultText = if (banned) {
             """
@@ -62,14 +65,16 @@ class InterrogationCmd(
         } else {
             "✅ Товарищ ${comrade.name} чист перед партией."
         }
+        when (state) {
+            SINGLE -> ctx.reply(resultText)
+            ALL -> if (!banned) println(resultText) else ctx.reply(resultText)
+        }
         if (banned) {
             ctx.bot.banChatMember(chatId, comrade.id)
             ctx.bot.unbanChatMember(chatId, comrade.id)
             deleteMessagesFromUser(ctx.bot, chatId, comrade.id)
-        }
-        when (state) {
-            SINGLE -> ctx.bot.sendMessage(chatId, resultText)
-            ALL -> if (!banned) println(resultText) else ctx.bot.sendMessage(chatId, resultText)
+            delay(5_000)
+            deleteMessagesFromBot(ctx.bot, chatId)
         }
     }
 
