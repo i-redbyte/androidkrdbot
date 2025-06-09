@@ -22,9 +22,7 @@ class BotEngine(
     private val commands: List<BotCommand>,
     private val globalMiddlewares: List<Middleware>,
     private val adminOnly: Middleware,
-    private val messageListeners: List<MessageListener>,
-    private val chatMemberListeners: List<ChatMemberListener>
-) {
+    private val messageListeners: List<MessageListener>) {
 
     private val telegramBot = bot {
         this.token = token
@@ -52,11 +50,6 @@ class BotEngine(
                 scope.launch {
                     val mctx = MessageContext(bot, message)
                     messageListeners.forEach { it.handle(mctx) }
-                }
-            }
-            chatMember {
-                scope.launch {
-                    chatMemberListeners.forEach { it.handle(this@chatMember) }
                 }
             }
         }
