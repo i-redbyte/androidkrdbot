@@ -3,6 +3,8 @@ package su.redbyte.androidkrdbot.domain.usecase
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.types.TelegramBotResult
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
+import su.redbyte.androidkrdbot.utils.candidateName
+import su.redbyte.androidkrdbot.utils.deleteMessagesFromUser
 
 class CheckAnswerUseCase(
     private val verificationRepository: VerificationRepository
@@ -30,7 +32,9 @@ class CheckAnswerUseCase(
                     if (status != "left" && status != "kicked") {
                         bot.banChatMember(chatId, userId)
                         bot.unbanChatMember(chatId, userId)
+                        deleteMessagesFromUser(bot, chatId, userId)
                         bot.sendMessage(chatId, "Товарищ ${user.candidateName()} дал неправильный ответ и был удалён.")
+
                         println("✅ ${user.firstName} удалён за неправильный ответ")
                     } else {
                         println("👻 ${user.firstName} уже не в чате")
