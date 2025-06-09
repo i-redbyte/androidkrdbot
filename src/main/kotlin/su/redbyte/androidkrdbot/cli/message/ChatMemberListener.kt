@@ -7,6 +7,8 @@ import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
 import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
 
+//TODO: Remove or not remove?
+@Deprecated("Remove or not remove?")
 interface ChatMemberListener {
     suspend fun handle(env: ChatMemberHandlerEnvironment)
 }
