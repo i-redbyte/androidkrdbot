@@ -3,10 +3,12 @@ package su.redbyte.androidkrdbot.cli.command
 import com.github.kotlintelegrambot.entities.ChatId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import su.redbyte.androidkrdbot.data.repository.MessageCache
 import su.redbyte.androidkrdbot.domain.model.InterrogationState.*
 import su.redbyte.androidkrdbot.domain.model.Comrade
 import su.redbyte.androidkrdbot.domain.usecase.FetchComradesUseCase
 import su.redbyte.androidkrdbot.domain.usecase.CheckBanUseCase
+import su.redbyte.androidkrdbot.utils.deleteMessagesFromUser
 
 class InterrogationCmd(
     private val scope: CoroutineScope,
@@ -63,10 +65,12 @@ class InterrogationCmd(
         if (banned) {
             ctx.bot.banChatMember(chatId, comrade.id)
             ctx.bot.unbanChatMember(chatId, comrade.id)
+            deleteMessagesFromUser(ctx.bot, chatId, comrade.id)
         }
         when (state) {
             SINGLE -> ctx.bot.sendMessage(chatId, resultText)
             ALL -> if (!banned) println(resultText) else ctx.bot.sendMessage(chatId, resultText)
         }
     }
+
 }

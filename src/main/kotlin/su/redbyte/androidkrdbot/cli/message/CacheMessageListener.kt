@@ -7,6 +7,8 @@ class CacheMessageListener : MessageListener {
         val userId = ctx.message.from?.id ?: return
         val chatId = ctx.rawChatId
         val messageId = ctx.message.messageId
-        MessageCache.add(chatId,userId, messageId = messageId)
+        //todo:for logs
+//        println("📥 Добавление в кэш: user=$userId, chat=$chatId, message=$messageId")
+        MessageCache.add(chatId, userId, messageId = messageId)
     }
 }

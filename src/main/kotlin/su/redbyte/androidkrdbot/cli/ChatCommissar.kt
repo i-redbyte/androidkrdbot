@@ -48,10 +48,10 @@ fun main() {
     )
 
     val listeners = listOf(
-        NewMembersListener(getRandomQuestion, scheduleVerification),
-        AnswerListener(checkAnswer),
+        CacheMessageListener(),
         CacheComradeListener(appScope, fetchComrades),
-        CacheMessageListener()
+        NewMembersListener(getRandomQuestion, scheduleVerification),
+        AnswerListener(checkAnswer)
     )
 
     val adminOnly = AdminOnly(checkAdminRights)
