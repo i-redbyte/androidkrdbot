@@ -2,7 +2,6 @@ rootProject.name = "androidkrdbot"
 
 pluginManagement {
     repositories {
-        maven( "https://jitpack.io" )
         gradlePluginPortal()
         mavenCentral()
     }
@@ -11,8 +10,8 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        maven( "https://jitpack.io" )
         gradlePluginPortal()
         mavenCentral()
+        maven( "https://jitpack.io" )
     }
 }
