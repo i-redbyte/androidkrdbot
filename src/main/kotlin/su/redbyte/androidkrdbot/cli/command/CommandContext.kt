@@ -3,6 +3,7 @@ package su.redbyte.androidkrdbot.cli.command
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.Message
+import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
 
 class CommandContext(
     val bot: Bot,
@@ -14,7 +15,7 @@ class CommandContext(
     val userId: Long? = message.from?.id
 
     fun reply(text: String) =
-        bot.sendMessage(chatId, text)
+        bot.sendAndCacheMessage(chatId, text)
 
 }
 

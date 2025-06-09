@@ -3,6 +3,7 @@ package su.redbyte.androidkrdbot.cli.message
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
 import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
+import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
 
 class NewMembersListener(
     private val getQuestion: GetRandomQuestionUseCase,
@@ -18,7 +19,7 @@ class NewMembersListener(
             if (user.id == botId) return@forEach
             val question = getQuestion()
             val introText = "Привет, ${user.username?:user.firstName}! Ответь на вопрос:\n${question.text}"
-            ctx.bot.sendMessage(chatId, introText)
+            ctx.reply(introText)
             scheduleVerification(user, chatId, question, ctx.bot)
         }
     }
