@@ -8,6 +8,8 @@ import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.model.Verification
 import su.redbyte.androidkrdbot.utils.candidateName
+import su.redbyte.androidkrdbot.utils.deleteMessagesFromBot
+import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
 import java.util.Timer
 import java.util.TimerTask
 
@@ -42,8 +44,10 @@ class ScheduleVerificationUseCase(
                         if (status != "left" && status != "kicked") {
                             bot.banChatMember(chatId, user.id)
                             bot.unbanChatMember(chatId, user.id)
-                            bot.sendMessage(chatId, "Товарищ ${user.candidateName()} не прошёл проверку и был удалён.")
+                            bot.sendAndCacheMessage(chatId, "Товарищ ${user.candidateName()} не прошёл проверку и был удалён.")
                             println("✅ ${user.firstName} удалён по таймеру")
+                            Thread.sleep(5000)
+                            deleteMessagesFromBot(bot, chatId)
                         } else {
                             println("👻 ${user.firstName} покинул чат до проверки")
                         }
