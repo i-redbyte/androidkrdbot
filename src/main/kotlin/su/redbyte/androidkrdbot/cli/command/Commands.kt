@@ -28,4 +28,8 @@ enum class Commands(
         commandName = "politburo",
         description = "Вывести список всех администраторов чата"
     ),
+    COMMAND_LIST(
+        commandName = "commandList",
+        description = "Вывести список команд бота"
+    ),
 }
