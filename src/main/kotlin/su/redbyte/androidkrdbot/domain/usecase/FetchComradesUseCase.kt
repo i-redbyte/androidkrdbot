@@ -7,7 +7,7 @@ class FetchComradesUseCase (
     private val repository: ComradesRepository
 ){
     suspend operator fun invoke(): List<Comrade> {
-        return repository.getAll().getOrElse { emptyList() }
+        return repository.getAll().getOrThrow()
     }
 
     suspend fun findById(id: Long): Comrade? = repository.findById(id)
