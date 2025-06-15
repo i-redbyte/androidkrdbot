@@ -44,7 +44,8 @@ fun main() {
         VerificationStatusCmd(verificationState),
         ReloadQuestionsCmd(),
         InterrogationCmd(appScope, fetchComrades, checkBan),
-        ShowPolitburoMembersCmd(getAdmins)
+        ShowPolitburoMembersCmd(getAdmins),
+        CommandListCmd()
     )
 
     val listeners = listOf(
