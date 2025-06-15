@@ -1,0 +1,42 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build project
+        run: ./gradlew clean shadowJar
+
+      - name: Upload jar to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: 82.146.46.74
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: build/libs/androidkrdbot-1.0-all.jar
+          target: /opt/beriakrd/beriakrd/
+
+      - name: Restart service on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: 82.146.46.74
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            systemctl stop beriakrd
+            systemctl start beriakrd
