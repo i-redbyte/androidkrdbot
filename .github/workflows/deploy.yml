@@ -26,8 +26,8 @@ jobs:
         uses: burnett01/rsync-deployments@5.1
         with:
           switches: -avz --progress
-          path: build/libs/androidkrdbot-1.0-all.jar
-          remote_path: /opt/beriakrd/beriakrd/androidkrdbot.jar
+          path: build/libs/
+          remote_path: /opt/beriakrd/beriakrd/
           remote_host: 82.146.46.74
           remote_user: root
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
