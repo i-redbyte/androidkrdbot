@@ -7,7 +7,7 @@ class CommandListCmd : BotCommand {
         val message = Commands
             .entries
             .joinToString("\n") {
-                "Команда: /${it.name} :${it.description}"
+                "Команда: /${it.commandName} \n-\t${it.description}"
             }
         ctx.reply(message)
     }
