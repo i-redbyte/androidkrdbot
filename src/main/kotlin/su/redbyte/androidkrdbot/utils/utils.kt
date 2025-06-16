@@ -13,32 +13,34 @@ fun ChatId.rawChatId(): Long = when (this) {
     else -> error("❌ ChatId не содержит числового ID")
 }
 
-//todo refactoring
-fun deleteMessagesFromUser(bot: Bot, chatId: ChatId, userId: Long) {
+private fun deleteMessages(
+    bot: Bot,
+    chatId: ChatId,
+    messageIds: List<Long>,
+    source: String = ""
+) {
     val rawChatId = chatId.rawChatId()
-    val messageIds = MessageCache.getMessagesFromUser(rawChatId, userId)
-    messageIds.forEach {
+    messageIds.forEach { messageId ->
         runCatching {
-            bot.deleteMessage(chatId, it)
-            MessageCache.removeMessage(rawChatId, it)
-        }.onFailure {
-            println("❌ Не удалось удалить сообщение $it: ${it.message}")
+            bot.deleteMessage(chatId, messageId)
+            MessageCache.removeMessage(rawChatId, messageId)
+        }.onFailure { e ->
+            val errorSource = if (source.isNotEmpty()) "[$source] " else ""
+            println("❌ ${errorSource}Не удалось удалить сообщение $messageId: ${e.message}")
         }
     }
 }
 
-//todo refactoring
+fun deleteMessagesFromUser(bot: Bot, chatId: ChatId, userId: Long) {
+    val messageIds = MessageCache.getMessagesFromUser(chatId.rawChatId(), userId)
+    deleteMessages(bot, chatId, messageIds, "USER")
+}
+
 fun deleteMessagesFromBot(bot: Bot, chatId: ChatId, n: Int = 2) {
-    val rawChatId = chatId.rawChatId()
-    val messageIds = MessageCache.getMessagesFromUser(rawChatId, bot.getMe().get().id)
-    messageIds.takeLast(n).forEach {
-        runCatching {
-            bot.deleteMessage(chatId, it)
-            MessageCache.removeMessage(rawChatId, it)
-        }.onFailure {
-            println("❌ [BOT] Не удалось удалить сообщение $it: ${it.message}")
-        }
-    }
+    val botUserId = bot.getMe().get().id
+    val allMessageIds = MessageCache.getMessagesFromUser(chatId.rawChatId(), botUserId)
+    val messageIds = allMessageIds.takeLast(n)
+    deleteMessages(bot, chatId, messageIds, "BOT")
 }
 
 fun Bot.sendAndCacheMessage(
