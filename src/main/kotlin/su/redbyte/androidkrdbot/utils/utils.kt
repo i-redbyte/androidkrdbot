@@ -8,6 +8,7 @@ import com.github.kotlintelegrambot.types.TelegramBotResult
 import su.redbyte.androidkrdbot.data.repository.MessageCache
 
 fun User.candidateName(): String = username?.let { "@$it" } ?: firstName
+
 fun ChatId.rawChatId(): Long = when (this) {
     is ChatId.Id -> this.id
     else -> error("❌ ChatId не содержит числового ID")
@@ -48,7 +49,7 @@ fun Bot.sendAndCacheMessage(
     text: String
 ): TelegramBotResult<Message> {
     //todo: for test
-    println("[Bot] :$text")
+    println("[Bot]: $text")
     val response = sendMessage(chatId, text)
     val botId = this.getMe().get().id
     response.getOrNull()?.let {

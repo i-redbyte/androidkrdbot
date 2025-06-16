@@ -28,6 +28,10 @@ enum class Commands(
         commandName = "politburo",
         description = "Вывести список всех администраторов чата"
     ),
+    LOOT_THE_LOOTED(
+        commandName = "lootTheLooted",
+        description = "Получить информацию по запросу с целевых сайтов"
+    ),
     COMMAND_LIST(
         commandName = "commandList",
         description = "Вывести список команд бота"

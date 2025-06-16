@@ -32,6 +32,7 @@ fun main() {
     val getAdmins = GetAdminsUseCase(chatAdminRepo)
     val checkBan = CheckBanUseCase(interrogationRepo)
     val fetchComrades = FetchComradesUseCase(comradesRepo)
+    val searchArticles = SearchArticlesUseCase()
     val verificationState = VerificationState
 
     appScope.launch {
@@ -45,7 +46,8 @@ fun main() {
         ReloadQuestionsCmd(),
         InterrogationCmd(appScope, fetchComrades, checkBan),
         ShowPolitburoMembersCmd(getAdmins),
-        CommandListCmd()
+        CommandListCmd(),
+        LootInfoCmd(searchArticles)
     )
 
     val listeners = listOf(
