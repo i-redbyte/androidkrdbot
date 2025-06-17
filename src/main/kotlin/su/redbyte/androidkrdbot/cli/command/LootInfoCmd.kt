@@ -8,19 +8,27 @@ class LootInfoCmd(
     override val name: String = Commands.LOOT_THE_LOOTED.commandName
 
     override suspend fun handle(ctx: CommandContext) {
-        println("ARG: ${ctx.args.size}")
         if (ctx.args.isEmpty()) return
         val query = ctx.args.joinToString(" ")
-        println("query = $query")
+        ctx.reply("Запрос на экспроприацию \"$query\" принят ведомством.")
         try {
-            val results = lootInfo(query)
+            val results = lootInfo(query, RESULT_COUNT)
             if (results.isEmpty()) {
-                ctx.reply("Не удалось добыть информацию. Попробуйте изменить запрос.")
+                ctx.reply("Не удалось провести экспроприацию. Попробуйте уточнить запрос.")
             } else {
-                ctx.reply("Результат экспроприации:\n${results.joinToString("\n") { it.pretty() }}")
+                val grouped = results.groupBy { it.source }
+                grouped.forEach { (source, results) ->
+                    val message =
+                        "Результат экспроприации [${source.sourceName}]:\n\n${results.joinToString("\n\n") { it.pretty() }} "
+                    ctx.reply(message)
+                }
             }
         } catch (e: Exception) {
             println("[LOOT ERROR]: ${e.message}")
         }
+    }
+
+    companion object {
+        private const val RESULT_COUNT = 5
     }
 }

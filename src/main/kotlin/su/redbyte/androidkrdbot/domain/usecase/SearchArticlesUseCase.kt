@@ -6,6 +6,6 @@ import su.redbyte.androidkrdbot.data.repository.SearchEngine
 class SearchArticlesUseCase(
     private val searchEngine: SearchEngine = SearchEngine
 ) {
-    suspend operator fun invoke(query: String): List<ExpropriationResult> =
-        searchEngine.search(query)
+    suspend operator fun invoke(query: String, n: Int): List<ExpropriationResult> =
+        searchEngine.search(query, n)
 }
