@@ -1,10 +1,5 @@
 package su.redbyte.androidkrdbot.data.repository
 
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.request.*
-import io.ktor.http.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -21,16 +16,16 @@ object SearchEngine {
         sources += source
     }
 
-    suspend fun search(query: String): List<ExpropriationResult> = coroutineScope {
+    suspend fun search(query: String, n: Int): List<ExpropriationResult> = coroutineScope {
         println("🔍  Start search: $query in ${sources.size} sources")
         val start = System.currentTimeMillis()
 
         val jobs = sources.map { src ->
             async {
-                runCatching { src.search(query) }
+                runCatching { src.search(query, n) }
                     .onSuccess { println("✓  ${it.size} results") }
                     .onFailure {
-                        println("⨯ [${src.sourceName}] search failed: ${it.message}")
+                        println("⨯ [${src.source.sourceName}] search failed: ${it.message}")
                         it.printStackTrace()
                     }.getOrElse { emptyList() }
             }

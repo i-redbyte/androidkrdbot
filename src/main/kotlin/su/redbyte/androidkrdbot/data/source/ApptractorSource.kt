@@ -6,21 +6,22 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jsoup.Jsoup
 import su.redbyte.androidkrdbot.data.model.ExpropriationResult
+import su.redbyte.androidkrdbot.data.model.LootSource
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 class AppTractorSource : Source {
-    override val sourceName: String = "AppTractor"
+    override val source = LootSource.APP_TRACTOR
 
     override suspend fun search(query: String, n: Int): List<ExpropriationResult> {
         val encoded = URLEncoder.encode(query, StandardCharsets.UTF_8)
-        val apiUrl = "https://apptractor.ru/wp-json/wp/v2/search?search=$encoded&per_page=10"
+        val apiUrl = "https://apptractor.ru/wp-json/wp/v2/search?search=$encoded&per_page=$n"
 
         val results: List<ExpropriationResult> = runCatching { fetchViaApi(apiUrl) }
             .getOrElse { fetchViaHtml("https://apptractor.ru/?s=$encoded", n) }
 
         if (results.isEmpty()) {
-            println("поиск не дал результатов")
+            println("[${source.sourceName}]: поиск не дал результатов")
         } else {
             results.forEach { println(it.pretty()) }
         }
@@ -40,11 +41,11 @@ class AppTractorSource : Source {
             val obj = it.jsonObject
             val title = obj["title"]!!.jsonPrimitive.content
             val link = obj["url"]!!.jsonPrimitive.content
-            ExpropriationResult(title, link)
+            ExpropriationResult(title, link, source)
         }
     }
 
-    private fun fetchViaHtml(url: String, n: Int = 10): List<ExpropriationResult> {
+    private fun fetchViaHtml(url: String, n: Int): List<ExpropriationResult> {
         val doc = Jsoup.connect(url)
             .userAgent("Mozilla/5.0 (compatible; AppTractorSearchBot/2.0)")
             .timeout(15_000)
@@ -55,7 +56,7 @@ class AppTractorSource : Source {
         )
 
         return anchors
-            .map { ExpropriationResult(it.text(), it.absUrl("href")) }
+            .map { ExpropriationResult(it.text(), it.absUrl("href"), source) }
             .distinctBy { it.url }
             .take(n)
     }
