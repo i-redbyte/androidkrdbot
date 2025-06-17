@@ -19,6 +19,8 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jsoup:jsoup:1.20.1")
+    implementation("org.slf4j:slf4j-simple:2.0.17")
 }
 
 tasks.test {
