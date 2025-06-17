@@ -14,6 +14,7 @@ import su.redbyte.androidkrdbot.data.source.*
 object SearchEngine {
     private val sources: MutableList<Source> = mutableListOf(
         HabrSource(),
+        AppTractorSource()
     )
 
     fun register(source: Source) {
