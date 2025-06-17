@@ -2,27 +2,39 @@ package su.redbyte.androidkrdbot.data.source
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import org.jsoup.Jsoup
 import su.redbyte.androidkrdbot.data.model.ExpropriationResult
-import su.redbyte.androidkrdbot.data.repository.encodeUrlParam
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
-class HabrSource(private val client: HttpClient) : Source {
-    override val baseUrl: String = "https://habr.com"
+class HabrSource : Source {
+    override val sourceName: String = "Habr"
 
-    override suspend fun search(query: String): List<ExpropriationResult> = withContext(Dispatchers.Default) {
-        val url = "$baseUrl/ru/search/?q=${query.encodeUrlParam()}&target_type=posts"
-        val html = client.get(url).bodyAsText()
-        val doc = Jsoup.parse(html)
-        doc.select("article.tm-article-snippet")
-            .mapNotNull { art ->
-                val titleEl = art.selectFirst("a.tm-article-snippet__title-link") ?: return@mapNotNull null
-                val title = titleEl.text()
-                val link = baseUrl + titleEl.attr("href")
-                val desc = art.selectFirst("div.article-formatted-body")?.text()?.take(200) ?: ""
-                ExpropriationResult(title, desc, link)
+    override suspend fun search(query: String, n: Int): List<ExpropriationResult> = withContext(Dispatchers.IO) {
+        val encoded = URLEncoder.encode(query, StandardCharsets.UTF_8)
+        val url = "https://habr.com/ru/search/?q=$encoded&target_type=posts&order=relevance"
+        try {
+            val doc = Jsoup.connect(url)
+                .userAgent("Mozilla/5.0 (compatible; HabrSearchBot/1.1)")
+                .timeout(15_000)
+                .get()
+
+
+            val results: List<ExpropriationResult> = doc.select("a.tm-title__link")
+                .map { ExpropriationResult(it.text(), it.absUrl("href")) }
+                .distinctBy { it.url }
+                .take(10)
+
+            if (results.isEmpty()) {
+                println("поиск не дал результатов")
+            } else {
+                results.forEach { println(it.pretty()) }
             }
+            return@withContext results
+        } catch (ex: Exception) {
+            println("[HabrSource] Ошибка при выполнении запроса: ${ex.message}")
+            return@withContext emptyList()
+        }
+
     }
 }
