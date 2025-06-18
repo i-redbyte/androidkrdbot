@@ -53,7 +53,7 @@ class MarkovRepository private constructor(
             fileName: String = "clean_code_tokenized.txt",
             scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         ): MarkovRepository = withContext(scope.coroutineContext) {
-            val baseDir = detectBaseDir().toString().dropLast(2)
+            val baseDir = detectBaseDir().toString()
             val corpusPath = File(baseDir, "markov/$fileName").toPath()
             val tokens = tokenize(Files.readString(corpusPath))
             val (chain, starts) = train(tokens)
