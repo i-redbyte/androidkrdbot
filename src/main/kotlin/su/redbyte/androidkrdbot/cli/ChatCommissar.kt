@@ -12,7 +12,7 @@ import su.redbyte.androidkrdbot.data.repository.*
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.usecase.*
 
-fun main() {
+suspend fun main() {
     val env = dotenv()
     val token = env["TELEGRAM_BOT_TOKEN"] ?: error("TELEGRAM_BOT_TOKEN is not set")
     val apiId = env["API_ID"] ?: error("API_ID is not set")
@@ -24,6 +24,7 @@ fun main() {
     val chatAdminRepo = ChatAdminRepository()
     val interrogationRepo = InterrogationRepository()
     val comradesRepo = ComradesRepository(apiId, apiHash)
+    val markovRepo = MarkovRepository.load()
 
     val getRandomQuestion = GetRandomQuestionUseCase(questionRepo)
     val scheduleVerification = ScheduleVerificationUseCase(verificationRepo)
@@ -55,7 +56,7 @@ fun main() {
         CacheComradeListener(appScope, fetchComrades),
         NewMembersListener(getRandomQuestion, scheduleVerification),
         AnswerListener(checkAnswer),
-        ReplyToMessageListener()
+        ReplyToMessageListener(markovRepo)
     )
 
     val adminOnly = AdminOnly(checkAdminRights)
