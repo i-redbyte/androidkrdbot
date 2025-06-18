@@ -2,7 +2,6 @@ package su.redbyte.androidkrdbot.cli.engine
 
 import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
-import com.github.kotlintelegrambot.dispatcher.chatMember
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.message
 import kotlinx.coroutines.CoroutineScope
@@ -11,7 +10,6 @@ import su.redbyte.androidkrdbot.cli.command.BotCommand
 import su.redbyte.androidkrdbot.cli.command.CommandContext
 import su.redbyte.androidkrdbot.cli.command.RequireAdmin
 import su.redbyte.androidkrdbot.cli.command.buildContext
-import su.redbyte.androidkrdbot.cli.message.ChatMemberListener
 import su.redbyte.androidkrdbot.cli.message.MessageContext
 import su.redbyte.androidkrdbot.cli.message.MessageListener
 import su.redbyte.androidkrdbot.cli.middleware.Middleware
@@ -52,6 +50,7 @@ class BotEngine(
                     messageListeners.forEach { it.handle(mctx) }
                 }
             }
+
         }
     }
 

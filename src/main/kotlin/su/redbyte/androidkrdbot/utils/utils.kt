@@ -3,6 +3,7 @@ package su.redbyte.androidkrdbot.utils
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.Message
+import com.github.kotlintelegrambot.entities.MessageEntity
 import com.github.kotlintelegrambot.entities.User
 import com.github.kotlintelegrambot.types.TelegramBotResult
 import su.redbyte.androidkrdbot.data.repository.MessageCache
@@ -55,7 +56,12 @@ fun Bot.sendAndCacheMessage(
     response.getOrNull()?.let {
         MessageCache.add(chatId.rawChatId(), botId, it.messageId)
     }
-
     return response
-
 }
+
+fun Message.containsBotMention(botUserName: String): Boolean =
+    entities
+        ?.filter { it.type == MessageEntity.Type.MENTION }
+        ?.any { text?.substring(it.offset, it.offset + it.length) == "@$botUserName" }
+        ?: false
+
