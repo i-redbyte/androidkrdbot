@@ -12,7 +12,7 @@ import su.redbyte.androidkrdbot.data.repository.*
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.usecase.*
 
-suspend fun main() {
+fun main() = runBlocking {
     val env = dotenv()
     val token = env["TELEGRAM_BOT_TOKEN"] ?: error("TELEGRAM_BOT_TOKEN is not set")
     val apiId = env["API_ID"] ?: error("API_ID is not set")
