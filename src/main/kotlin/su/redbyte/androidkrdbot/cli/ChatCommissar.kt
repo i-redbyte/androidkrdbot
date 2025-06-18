@@ -50,11 +50,12 @@ fun main() {
         LootInfoCmd(searchArticles)
     )
 
-    val listeners = listOf(
+    val messageListeners = listOf(
         CacheMessageListener(),
         CacheComradeListener(appScope, fetchComrades),
         NewMembersListener(getRandomQuestion, scheduleVerification),
-        AnswerListener(checkAnswer)
+        AnswerListener(checkAnswer),
+        ReplyToMessageListener()
     )
 
     val adminOnly = AdminOnly(checkAdminRights)
@@ -67,7 +68,7 @@ fun main() {
         commands = commands,
         globalMiddlewares = globalMW,
         adminOnly = adminOnly,
-        messageListeners = listeners,
+        messageListeners = messageListeners,
     )
 
     Runtime.getRuntime().addShutdownHook(Thread {
