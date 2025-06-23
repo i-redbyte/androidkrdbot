@@ -3,6 +3,7 @@ package su.redbyte.androidkrdbot.cli
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.*
 import su.redbyte.androidkrdbot.cli.command.*
+import su.redbyte.androidkrdbot.cli.comrade.VerificationNewComradeListener
 import su.redbyte.androidkrdbot.cli.engine.BotEngine
 import su.redbyte.androidkrdbot.cli.message.*
 import su.redbyte.androidkrdbot.cli.middleware.AdminOnly
@@ -54,11 +55,12 @@ fun main() = runBlocking {
     val messageListeners = listOf(
         CacheMessageListener(),
         CacheComradeListener(appScope, fetchComrades),
-        NewMembersListener(getRandomQuestion, scheduleVerification),
         AnswerListener(checkAnswer),
         ReplyToMessageListener(markovRepo)
     )
-
+    val newComradeListener = listOf(
+        VerificationNewComradeListener(getRandomQuestion, scheduleVerification, appScope)
+    )
     val adminOnly = AdminOnly(checkAdminRights)
     val rateLimit = RateLimit()
     val globalMW = listOf<Middleware>(rateLimit)
@@ -70,6 +72,7 @@ fun main() = runBlocking {
         globalMiddlewares = globalMW,
         adminOnly = adminOnly,
         messageListeners = messageListeners,
+        newComradeListeners = newComradeListener
     )
 
     Runtime.getRuntime().addShutdownHook(Thread {
