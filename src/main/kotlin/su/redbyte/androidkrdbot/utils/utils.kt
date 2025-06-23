@@ -38,7 +38,7 @@ fun deleteMessagesFromUser(bot: Bot, chatId: ChatId, userId: Long) {
     deleteMessages(bot, chatId, messageIds, "USER")
 }
 
-fun deleteMessagesFromBot(bot: Bot, chatId: ChatId, n: Int = 2) {
+fun deleteMessagesFromBot(bot: Bot, chatId: ChatId, n: Int = 3) {
     val botUserId = bot.getMe().get().id
     val allMessageIds = MessageCache.getMessagesFromUser(chatId.rawChatId(), botUserId)
     val messageIds = allMessageIds.takeLast(n)

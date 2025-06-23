@@ -4,6 +4,7 @@ import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.message
+import com.github.kotlintelegrambot.dispatcher.newChatMembers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import su.redbyte.androidkrdbot.cli.command.BotCommand
@@ -12,6 +13,7 @@ import su.redbyte.androidkrdbot.cli.command.RequireAdmin
 import su.redbyte.androidkrdbot.cli.command.buildContext
 import su.redbyte.androidkrdbot.cli.message.MessageContext
 import su.redbyte.androidkrdbot.cli.message.MessageListener
+import su.redbyte.androidkrdbot.cli.comrade.NewComradeListener
 import su.redbyte.androidkrdbot.cli.middleware.Middleware
 
 class BotEngine(
@@ -20,7 +22,9 @@ class BotEngine(
     private val commands: List<BotCommand>,
     private val globalMiddlewares: List<Middleware>,
     private val adminOnly: Middleware,
-    private val messageListeners: List<MessageListener>) {
+    private val messageListeners: List<MessageListener>,
+    private val newComradeListeners: List<NewComradeListener>,
+) {
 
     private val telegramBot = bot {
         this.token = token
@@ -43,14 +47,20 @@ class BotEngine(
                     }
                 }
             }
-
+            newChatMembers {
+                scope.launch {
+                    val mctx = MessageContext(bot, message)
+                    newChatMembers.forEach { user ->
+                        newComradeListeners.forEach { it.handle(mctx, user) }
+                    }
+                }
+            }
             message {
                 scope.launch {
                     val mctx = MessageContext(bot, message)
                     messageListeners.forEach { it.handle(mctx) }
                 }
             }
-
         }
     }
 

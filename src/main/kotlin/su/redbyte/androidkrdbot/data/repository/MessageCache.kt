@@ -19,7 +19,8 @@ object MessageCache {
 
     @Synchronized
     fun add(chatId: Long, userId: Long, messageId: Long) {
-        println("[MessageCache] Add new message: <userId = $userId | messageId = $messageId>")
+        //todo: for logs
+        //println("[MessageCache] Add new message: <userId = $userId | messageId = $messageId>")
         val messages = cache.getOrPut(chatId) { mutableListOf() }
         messages.add(MessageEntry(messageId, userId))
         if (messages.size > 100) messages.removeFirst()
