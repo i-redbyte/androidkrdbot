@@ -26,15 +26,15 @@ class LibUpdatesCmd(
 
         val dateFormatter = DateTimeFormatter.ISO_DATE
         val msg = buildString {
-            appendLine("📦 Актуальные релизы:")
+            appendLine("📦 *Актуальные релизы:*")
             updates.forEach { u ->
                 val date = u.publishedAt
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate()
                     .format(dateFormatter)
 
-                appendLine("▫️ [ ${u.name} ] — `${u.version}` <вышел: $date>")
-                appendLine("➡\uFE0F [ Релиз ]: ${u.url}\n")
+                appendLine("▫️ [ ${u.name} ] — ${u.version} `вышел: $date`")
+                appendLine("➡\uFE0F [Смотреть релиз](${u.url})\n")
             }
         }
 
