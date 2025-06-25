@@ -32,6 +32,10 @@ enum class Commands(
         commandName = "lootTheLooted",
         description = "Получить информацию по запросу с целевых сайтов"
     ),
+    LIB_UPDATES(
+        commandName = "libUpdates",
+        description = "Получить информацию о последней версии указанной библиотеки"
+    ),
     COMMAND_LIST(
         commandName = "commandList",
         description = "Вывести список команд бота"

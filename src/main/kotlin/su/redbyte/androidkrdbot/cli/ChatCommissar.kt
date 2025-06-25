@@ -26,6 +26,7 @@ fun main() = runBlocking {
     val interrogationRepo = InterrogationRepository()
     val comradesRepo = ComradesRepository(apiId, apiHash)
     val markovRepo = MarkovRepository.load()
+    val libraryRepo = LibraryRepository()
 
     val getRandomQuestion = GetRandomQuestionUseCase(questionRepo)
     val scheduleVerification = ScheduleVerificationUseCase(verificationRepo)
@@ -35,6 +36,7 @@ fun main() = runBlocking {
     val checkBan = CheckBanUseCase(interrogationRepo)
     val fetchComrades = FetchComradesUseCase(comradesRepo)
     val searchArticles = SearchArticlesUseCase()
+    val fetchLibraryUpdates = FetchLibraryUpdatesUseCase(libraryRepo)
     val verificationState = VerificationState
 
     appScope.launch {
@@ -49,7 +51,8 @@ fun main() = runBlocking {
         InterrogationCmd(appScope, fetchComrades, checkBan),
         ShowPolitburoMembersCmd(getAdmins),
         CommandListCmd(),
-        LootInfoCmd(searchArticles)
+        LootInfoCmd(searchArticles),
+        LibUpdatesCmd(fetchLibraryUpdates)
     )
 
     val messageListeners = listOf(
