@@ -19,7 +19,7 @@ class LootInfoCmd(
                 val grouped = results.groupBy { it.source }
                 grouped.forEach { (source, results) ->
                     val message =
-                        "Результат экспроприации [${source.sourceName}]:\n\n${results.joinToString("\n\n") { it.pretty() }} "
+                        "Результат экспроприации [${source.sourceName}]:\n\n${results.joinToString("\n\n") { it.prettyWithUrl() }} "
                     ctx.reply(message)
                 }
             }
