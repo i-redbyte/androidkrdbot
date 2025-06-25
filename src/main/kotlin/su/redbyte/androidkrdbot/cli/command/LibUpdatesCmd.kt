@@ -26,7 +26,7 @@ class LibUpdatesCmd(
 
         val dateFormatter = DateTimeFormatter.ISO_DATE
         val msg = buildString {
-            appendLine("📦 *Актуальные релизы*")
+            appendLine("📦 Актуальные релизы:")
             updates.forEach { u ->
                 val date = u.publishedAt
                     .atZone(ZoneId.systemDefault())
@@ -34,7 +34,7 @@ class LibUpdatesCmd(
                     .format(dateFormatter)
 
                 appendLine("▫️ [ ${u.name} ] — `${u.version}` <вышел: $date>")
-                appendLine("[Смотреть релиз](${u.url})\n")
+                appendLine("➡\uFE0F [ Релиз ]: ${u.url}\n")
             }
         }
 
@@ -42,6 +42,6 @@ class LibUpdatesCmd(
     }
 
     companion object {
-        private val DEFAULT_LIBS = listOf("compose", "retrofit", "coil", "kotlin")
+        private val DEFAULT_LIBS = listOf("compose", "retrofit", "coil", "kotlin", "gradle")
     }
 }

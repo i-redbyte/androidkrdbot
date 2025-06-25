@@ -50,7 +50,7 @@ fun Bot.sendAndCacheMessage(
     text: String
 ): TelegramBotResult<Message> {
     //todo: for test
-    println("[Bot]: $text")
+    //println("[Bot]: $text")
     val response = sendMessage(chatId, text)
     val botId = this.getMe().get().id
     response.getOrNull()?.let {
