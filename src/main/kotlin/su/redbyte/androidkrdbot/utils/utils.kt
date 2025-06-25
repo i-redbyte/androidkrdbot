@@ -1,10 +1,7 @@
 package su.redbyte.androidkrdbot.utils
 
 import com.github.kotlintelegrambot.Bot
-import com.github.kotlintelegrambot.entities.ChatId
-import com.github.kotlintelegrambot.entities.Message
-import com.github.kotlintelegrambot.entities.MessageEntity
-import com.github.kotlintelegrambot.entities.User
+import com.github.kotlintelegrambot.entities.*
 import com.github.kotlintelegrambot.types.TelegramBotResult
 import su.redbyte.androidkrdbot.data.repository.MessageCache
 
@@ -51,7 +48,7 @@ fun Bot.sendAndCacheMessage(
 ): TelegramBotResult<Message> {
     //todo: for test
     //println("[Bot]: $text")
-    val response = sendMessage(chatId, text)
+    val response = sendMessage(chatId, text, parseMode = ParseMode.MARKDOWN )
     val botId = this.getMe().get().id
     response.getOrNull()?.let {
         MessageCache.add(chatId.rawChatId(), botId, it.messageId)
