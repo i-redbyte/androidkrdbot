@@ -13,6 +13,8 @@ data class MavenResponse(
 
     @Serializable
     data class Doc(
+        @SerialName("g") val group: String,
+        @SerialName("a") val artifact: String,
         @SerialName("latestVersion") val latestVersion: String,
         val timestamp: Long
     )
