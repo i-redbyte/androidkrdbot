@@ -42,6 +42,6 @@ class LibUpdatesCmd(
     }
 
     companion object {
-        private val DEFAULT_LIBS = listOf("compose", "retrofit", "coil", "kotlin", "gradle")
+        private val DEFAULT_LIBS = listOf("compose", "retrofit", "coil", "kotlin")
     }
 }
