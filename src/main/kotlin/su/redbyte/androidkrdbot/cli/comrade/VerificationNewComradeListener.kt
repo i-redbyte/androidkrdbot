@@ -27,10 +27,17 @@ class VerificationNewComradeListener(
         val joinMsgId = ctx.message.messageId
         MessageCache.add(chatId.rawChatId(), botId, joinMsgId)
         val until = Instant.now().plusSeconds(40).epochSecond
+        println("[VerificationNewComradeListener] botId = $botId userId = ${user.id}")
         ctx.bot.restrictChatMember(
             chatId = chatId,
             userId = user.id,
-            chatPermissions = ChatPermissions(canSendMessages = false),
+            chatPermissions = ChatPermissions(
+                canSendMessages = false,
+                canSendMediaMessages = false,
+                canSendPolls = false,
+                canSendOtherMessages = false,
+                canAddWebPagePreviews = false
+            ),
             untilDate = until
         )
         scope.launch {
@@ -38,7 +45,13 @@ class VerificationNewComradeListener(
             ctx.bot.restrictChatMember(
                 chatId = chatId,
                 userId = user.id,
-                chatPermissions = ChatPermissions(canSendMessages = true),
+                chatPermissions = ChatPermissions(
+                    canSendMessages = true,
+                    canSendMediaMessages = true,
+                    canSendPolls = true,
+                    canSendOtherMessages = true,
+                    canAddWebPagePreviews = true
+                ),
                 untilDate = 0L
             )
         }
