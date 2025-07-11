@@ -3,7 +3,7 @@ package su.redbyte.androidkrdbot.domain.usecase
 import com.github.kotlintelegrambot.Bot
 import su.redbyte.androidkrdbot.data.repository.ChatAdminRepository
 
-class CheckAdminRightsUseCase(
+class IsUserAdminUseCase(
     private val adminRepository: ChatAdminRepository
 ) {
     operator fun invoke(
