@@ -8,22 +8,28 @@ import kotlinx.coroutines.launch
 import su.redbyte.androidkrdbot.cli.message.MessageContext
 import su.redbyte.androidkrdbot.data.repository.MessageCache
 import su.redbyte.androidkrdbot.domain.VerificationState
+import su.redbyte.androidkrdbot.domain.usecase.IsUserAdminUseCase
 import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
 import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
+import su.redbyte.androidkrdbot.utils.candidateName
 import su.redbyte.androidkrdbot.utils.rawChatId
 import java.time.Instant
 
 class VerificationNewComradeListener(
     private val getQuestion: GetRandomQuestionUseCase,
     private val scheduleVerification: ScheduleVerificationUseCase,
+    private val isUserAdmin: IsUserAdminUseCase,
     private val scope: CoroutineScope
 ) : NewComradeListener {
 
     override suspend fun handle(ctx: MessageContext, user: User) {
-        val chatId = ctx.chatId
+        val inviterId = ctx.message.from?.id ?: return
+        if (inviterId != user.id && isUserAdmin(ctx.bot, ctx.rawChatId, inviterId)) return
         if (!VerificationState.enabled) return
         val botId = ctx.bot.getMe().get().id
         if (user.id == botId) return
+
+        val chatId = ctx.chatId
         val joinMsgId = ctx.message.messageId
         MessageCache.add(chatId.rawChatId(), botId, joinMsgId)
         val until = Instant.now().plusSeconds(40).epochSecond
@@ -56,7 +62,7 @@ class VerificationNewComradeListener(
             )
         }
         val question = getQuestion()
-        val introText = "Привет, ${user.username ?: user.firstName}! Ответь на вопрос:\n${question.text}"
+        val introText = "‼\uFE0F Привет, ${user.candidateName()}! Ответь на вопрос:\n${question.text}"
         ctx.reply(introText)
         scheduleVerification(user, chatId, question, ctx.bot)
     }
