@@ -3,6 +3,7 @@ package su.redbyte.androidkrdbot.cli
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.*
 import su.redbyte.androidkrdbot.cli.command.*
+import su.redbyte.androidkrdbot.cli.comrade.CleanupLeftMemberListener
 import su.redbyte.androidkrdbot.cli.comrade.VerificationNewComradeListener
 import su.redbyte.androidkrdbot.cli.engine.BotEngine
 import su.redbyte.androidkrdbot.cli.message.*
@@ -62,6 +63,7 @@ fun main() = runBlocking {
         ReplyToMessageListener(markovRepo)
     )
     val newComradeListener = listOf(
+        CleanupLeftMemberListener(verificationRepo),
         VerificationNewComradeListener(
             getRandomQuestion,
             scheduleVerification,

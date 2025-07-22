@@ -12,6 +12,7 @@ import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.model.VerificationRecord
 import su.redbyte.androidkrdbot.utils.candidateName
 import su.redbyte.androidkrdbot.utils.deleteMessagesFromBot
+import su.redbyte.androidkrdbot.utils.deleteMessagesFromUser
 import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
 
 class ScheduleVerificationUseCase(
@@ -27,12 +28,15 @@ class ScheduleVerificationUseCase(
     ) {
         val job = scope.launch {
             delay(TIMEOUT_MILLIS)
+            repository.cancelTimer(user.id)
+            repository.remove(user.id)
             when (val result = bot.getChatMember(chatId, user.id)) {
                 is TelegramBotResult.Success -> {
                     val status = result.value.status
                     if (status != "left" && status != "kicked") {
                         bot.banChatMember(chatId, user.id)
                         bot.unbanChatMember(chatId, user.id)
+                        deleteMessagesFromUser(bot, chatId, user.id)
                         bot.sendAndCacheMessage(
                             chatId,
                             "Товарищ ${user.candidateName()} не прошёл проверку и был удалён."
@@ -41,20 +45,10 @@ class ScheduleVerificationUseCase(
                     }
                 }
 
-                is TelegramBotResult.Error -> {
-                    println("❌ [TIMER] Ошибка getChatMember для ${user.id}")
-                }
+                is TelegramBotResult.Error -> println("❌ [TIMER] Ошибка getChatMember для ${user.id}")
             }
-            repository.remove(user.id)
         }
-
-        val record = VerificationRecord(
-            user = user,
-            chatId = chatId,
-            question = question,
-            job = job
-        )
-        repository.add(user.id, record)
+        repository.add(user.id, VerificationRecord(user, chatId, question, job))
     }
 
     companion object {
