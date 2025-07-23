@@ -7,7 +7,6 @@ class FetchDigestCmd(
 ) : BotCommand {
     override val name: String = Commands.DIGEST.commandName
     override suspend fun handle(ctx: CommandContext) {
-        println("FetchDigestCmd")
         val text = fetchDigest()
         if (text.isEmpty()) {
             ctx.reply("В нашей агентурной сети пока нет новой информации. Продолжаем вести наблюдение \uD83D\uDC40")

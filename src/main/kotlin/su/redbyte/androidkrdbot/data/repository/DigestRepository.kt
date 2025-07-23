@@ -10,6 +10,7 @@ class DigestRepository(
         return try {
             Result.success(fetchDigest(apiId, apiHash))
         } catch (e: Exception) {
+            println("[FetchDigestCmd]: ${e.message}")
             Result.failure(e)
         }
     }
