@@ -40,4 +40,8 @@ enum class Commands(
         commandName = "commandList",
         description = "Вывести список команд бота"
     ),
+    DIGEST(
+        commandName = "digest",
+        description = "Краткая выжимка за сутки из популярных IT-каналов"
+    ),
 }

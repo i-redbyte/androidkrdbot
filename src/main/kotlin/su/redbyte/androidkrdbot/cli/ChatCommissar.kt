@@ -26,6 +26,7 @@ fun main() = runBlocking {
     val chatAdminRepo = ChatAdminRepository()
     val interrogationRepo = InterrogationRepository()
     val comradesRepo = ComradesRepository(apiId, apiHash)
+    val digestRepo = DigestRepository(apiId, apiHash)
     val markovRepo = MarkovRepository.load()
     val libraryRepo = LibraryRepository()
 
@@ -38,12 +39,14 @@ fun main() = runBlocking {
     val fetchComrades = FetchComradesUseCase(comradesRepo)
     val searchArticles = SearchArticlesUseCase()
     val fetchLibraryUpdates = FetchLibraryUpdatesUseCase(libraryRepo)
+    val fetchDigest = FetchDigestUseCase(digestRepo)
     val verificationState = VerificationState
 
     appScope.launch {
         val comrades = fetchComrades()
         println("📦 Загрузили ${comrades.size} товарищей. ${comrades.random()}!!!")
     }
+
     val commands = listOf(
         StartVerificationCmd(verificationState),
         StopVerificationCmd(verificationState),
@@ -53,6 +56,7 @@ fun main() = runBlocking {
         ShowPolitburoMembersCmd(getAdmins),
         CommandListCmd(),
         LootInfoCmd(searchArticles),
+        FetchDigestCmd(fetchDigest),
         LibUpdatesCmd(fetchLibraryUpdates)
     )
 
