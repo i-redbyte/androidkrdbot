@@ -24,7 +24,7 @@ async def get_members(api_id: int, api_hash: str):
             print(f"ERROR: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print("Usage: python members_exporter.py <api_id> <api_hash>", file=sys.stderr)
         sys.exit(1)
 
