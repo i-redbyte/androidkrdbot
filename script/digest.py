@@ -1,7 +1,7 @@
 import asyncio
 import sqlite3
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pyrogram import Client, enums
 
 SOURCE_CHANNELS = [
@@ -35,7 +35,7 @@ def init_db():
     return conn
 
 async def collect_and_send(app: Client, db) -> str:
-    utc_now = datetime.utcnow()
+    utc_now = datetime.now(timezone.utc)
     since = utc_now - timedelta(days=1)
 
     lines = []
@@ -43,7 +43,10 @@ async def collect_and_send(app: Client, db) -> str:
 
     for chan in SOURCE_CHANNELS:
         async for m in app.get_chat_history(chan):
-            if m.date is None or m.date < since:
+            if m.date is None:
+                break
+            msg_date = m.date.replace(tzinfo=timezone.utc)
+            if msg_date < since:
                 break
             content = m.text or m.caption
             if not content:
@@ -68,8 +71,8 @@ async def collect_and_send(app: Client, db) -> str:
         return "NO_NEW"
 
     lines.reverse()
-    header = f"📱 *Разведданные — {utc_now:%d %b %Y}*\n\n"
-    text = header + "\n".join(lines[:40])       # ≤ 40 пунктов
+    header = f"🛰 *Разведданные — {utc_now:%d %b %Y}*\n\n"
+    text = header + "\n".join(lines[:42])       # ≤ 42 пунктов
     return text
 
 async def main():
