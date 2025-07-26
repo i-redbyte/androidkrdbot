@@ -1,7 +1,7 @@
 package su.redbyte.androidkrdbot.data.repository
 
 import su.redbyte.androidkrdbot.domain.model.Comrade
-import su.redbyte.androidkrdbot.utils.fetchComrades
+import su.redbyte.androidkrdbot.infra.utils.fetchComrades
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

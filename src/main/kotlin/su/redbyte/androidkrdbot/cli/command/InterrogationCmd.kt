@@ -9,9 +9,9 @@ import su.redbyte.androidkrdbot.domain.model.InterrogationState.*
 import su.redbyte.androidkrdbot.domain.model.Comrade
 import su.redbyte.androidkrdbot.domain.usecase.FetchComradesUseCase
 import su.redbyte.androidkrdbot.domain.usecase.CheckBanUseCase
-import su.redbyte.androidkrdbot.utils.deleteMessagesFromBot
-import su.redbyte.androidkrdbot.utils.deleteMessagesFromUser
-import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
+import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromBot
+import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromUser
+import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
 
 class InterrogationCmd(
     private val scope: CoroutineScope,

@@ -1,4 +1,4 @@
-package su.redbyte.androidkrdbot.utils
+package su.redbyte.androidkrdbot.infra.utils
 
 import kotlinx.serialization.json.Json
 import su.redbyte.androidkrdbot.domain.model.Comrade

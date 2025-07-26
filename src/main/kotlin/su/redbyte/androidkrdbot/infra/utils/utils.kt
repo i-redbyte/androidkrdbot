@@ -1,4 +1,4 @@
-package su.redbyte.androidkrdbot.utils
+package su.redbyte.androidkrdbot.infra.utils
 
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.*

@@ -1,6 +1,6 @@
 package su.redbyte.androidkrdbot.data.repository
 
-import su.redbyte.androidkrdbot.utils.fetchDigest
+import su.redbyte.androidkrdbot.infra.utils.fetchDigest
 
 class DigestRepository(
     private val apiId: String,
