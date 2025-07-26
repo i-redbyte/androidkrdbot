@@ -3,7 +3,7 @@ package su.redbyte.androidkrdbot.data.repository
 import kotlinx.coroutines.*
 import su.redbyte.androidkrdbot.data.model.markov.BiKey
 import su.redbyte.androidkrdbot.data.model.markov.CumulativeNext
-import su.redbyte.androidkrdbot.utils.detectBaseDir
+import su.redbyte.androidkrdbot.infra.utils.detectBaseDir
 import java.io.File
 import java.nio.file.Files
 import kotlin.random.Random

@@ -11,8 +11,8 @@ import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.usecase.IsUserAdminUseCase
 import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
 import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
-import su.redbyte.androidkrdbot.utils.candidateName
-import su.redbyte.androidkrdbot.utils.rawChatId
+import su.redbyte.androidkrdbot.infra.utils.candidateName
+import su.redbyte.androidkrdbot.infra.utils.rawChatId
 import java.time.Instant
 
 class VerificationNewComradeListener(

@@ -1,7 +1,7 @@
 package su.redbyte.androidkrdbot.cli.message
 
 import su.redbyte.androidkrdbot.data.repository.MarkovRepository
-import su.redbyte.androidkrdbot.utils.containsBotMention
+import su.redbyte.androidkrdbot.infra.utils.containsBotMention
 import java.security.SecureRandom
 
 class ReplyToMessageListener(

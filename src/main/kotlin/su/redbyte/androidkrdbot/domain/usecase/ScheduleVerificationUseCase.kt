@@ -10,10 +10,10 @@ import kotlinx.coroutines.launch
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.model.VerificationRecord
-import su.redbyte.androidkrdbot.utils.candidateName
-import su.redbyte.androidkrdbot.utils.deleteMessagesFromBot
-import su.redbyte.androidkrdbot.utils.deleteMessagesFromUser
-import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
+import su.redbyte.androidkrdbot.infra.utils.candidateName
+import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromBot
+import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromUser
+import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
 
 class ScheduleVerificationUseCase(
     private val repository: VerificationRepository,

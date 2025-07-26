@@ -4,10 +4,10 @@ import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.types.TelegramBotResult.Error
 import com.github.kotlintelegrambot.types.TelegramBotResult.Success
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
-import su.redbyte.androidkrdbot.utils.candidateName
-import su.redbyte.androidkrdbot.utils.deleteMessagesFromBot
-import su.redbyte.androidkrdbot.utils.deleteMessagesFromUser
-import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
+import su.redbyte.androidkrdbot.infra.utils.candidateName
+import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromBot
+import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromUser
+import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
 
 class CheckAnswerUseCase(
     private val verificationRepository: VerificationRepository

@@ -1,4 +1,4 @@
-package su.redbyte.androidkrdbot.cli.middleware
+package su.redbyte.androidkrdbot.infra.middleware
 
 import su.redbyte.androidkrdbot.cli.command.CommandContext
 import su.redbyte.androidkrdbot.domain.usecase.IsUserAdminUseCase

@@ -1,4 +1,4 @@
-package su.redbyte.androidkrdbot.cli.middleware
+package su.redbyte.androidkrdbot.infra.middleware
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

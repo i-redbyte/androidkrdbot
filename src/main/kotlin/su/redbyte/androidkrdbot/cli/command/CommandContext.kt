@@ -3,7 +3,7 @@ package su.redbyte.androidkrdbot.cli.command
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.Message
-import su.redbyte.androidkrdbot.utils.sendAndCacheMessage
+import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
 
 class CommandContext(
     val bot: Bot,
