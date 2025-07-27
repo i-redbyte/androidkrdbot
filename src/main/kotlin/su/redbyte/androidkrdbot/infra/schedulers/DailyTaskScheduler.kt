@@ -41,6 +41,7 @@ class DailyTaskScheduler(
                         text
                     }
                     bot.sendAndCacheMessage(chatId, message)
+                    println("[DailyTaskScheduler]: Digest fetch started at ${LocalDateTime.now()} with result:\n$message")
                 } catch (e: Exception) {
                     bot.sendAndCacheMessage(chatId, "\uD83D\uDEA8 Ошибка при отправке дайджеста")
                     println("[DailyTaskScheduler]: Ошибка при отправке дайджеста: ${e.localizedMessage}")
