@@ -1,13 +1,39 @@
 package su.redbyte.androidkrdbot.cli.message
 
+import com.github.kotlintelegrambot.entities.User
+import su.redbyte.androidkrdbot.data.repository.ComradesRepository
+import su.redbyte.androidkrdbot.data.repository.VerificationRepository
+import su.redbyte.androidkrdbot.domain.VerificationState
+import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.usecase.CheckAnswerUseCase
+import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
+import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
 
 class AnswerListener(
-    private val checkAnswer: CheckAnswerUseCase
+    private val checkAnswerUseCase: CheckAnswerUseCase,
+    private val getRandomQuestion: GetRandomQuestionUseCase,
+    private val scheduleVerification: ScheduleVerificationUseCase,
+    private val verificationRepository: VerificationRepository,
+    private val comradesRepository: ComradesRepository
 ) : MessageListener {
     override suspend fun handle(ctx: MessageContext) {
-        val userId = ctx.message.from?.id ?: return
-        val answer = ctx.message.text ?: return
-        checkAnswer(userId, answer, ctx.bot)
+        val message = ctx.message
+        val from: User = message.from ?: return
+        if (from.isBot) return
+        val text = message.text ?: return
+        val userId = from.id
+        val chatId = ctx.chatId
+        if (verificationRepository.get(userId) != null) {
+            checkAnswerUseCase(userId, text, ctx.bot)
+            return
+        }
+        if (!VerificationState.enabled) return
+        val known = comradesRepository.getAll().getOrThrow()
+        if (known.none { it.id == userId }) {
+            val q: Question = getRandomQuestion()
+            val intro = "Привет, ${from.username ?: from.firstName}! Ответь на вопрос:\n${q.text}"
+            ctx.reply(intro)
+            scheduleVerification(from, chatId, q, ctx.bot)
+        }
     }
 }
