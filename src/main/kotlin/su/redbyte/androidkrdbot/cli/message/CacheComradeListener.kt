@@ -5,17 +5,24 @@ import kotlinx.coroutines.launch
 import su.redbyte.androidkrdbot.domain.usecase.FetchComradesUseCase
 
 class CacheComradeListener(
-    private val scope: CoroutineScope,
+    scope: CoroutineScope,
     private val fetchComrades: FetchComradesUseCase
 ) : MessageListener {
-    override suspend fun handle(ctx: MessageContext) {
-        val user = ctx.message.from ?: return
+
+    init {
         scope.launch {
-            val known = fetchComrades.findById(user.id)
-            if (known == null) {
-                println("🆕 Новый пользователь ${user.firstName} (${user.id}) — добавляем в кэш")
-                fetchComrades.ensureCached(user.id)
-            }
+            runCatching { fetchComrades() }
+                .onSuccess { list ->
+                    known.clear()
+                    known.addAll(list.map { it.id })
+                }
         }
     }
+
+    override suspend fun handle(ctx: MessageContext) = Unit
+
+    companion object {
+        val known: MutableSet<Long> = mutableSetOf()
+    }
+
 }

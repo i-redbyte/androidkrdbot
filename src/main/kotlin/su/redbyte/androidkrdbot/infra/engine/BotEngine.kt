@@ -4,7 +4,6 @@ import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.message
-import com.github.kotlintelegrambot.dispatcher.myChatMember
 import com.github.kotlintelegrambot.dispatcher.newChatMembers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -15,9 +14,7 @@ import su.redbyte.androidkrdbot.cli.command.buildContext
 import su.redbyte.androidkrdbot.cli.message.MessageContext
 import su.redbyte.androidkrdbot.cli.message.MessageListener
 import su.redbyte.androidkrdbot.cli.comrade.NewComradeListener
-import su.redbyte.androidkrdbot.domain.usecase.FetchDigestUseCase
 import su.redbyte.androidkrdbot.infra.middleware.Middleware
-import su.redbyte.androidkrdbot.infra.schedulers.DailyTaskScheduler
 
 class BotEngine(
     token: String,
@@ -28,7 +25,6 @@ class BotEngine(
     private val messageListeners: List<MessageListener>,
     private val newComradeListeners: List<NewComradeListener>
 ) {
-    private var digestSchedulerStarted: Boolean = false
     private val telegramBot = bot {
         this.token = token
 

@@ -3,16 +3,19 @@ package su.redbyte.androidkrdbot.domain.usecase
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.types.TelegramBotResult.Error
 import com.github.kotlintelegrambot.types.TelegramBotResult.Success
+import su.redbyte.androidkrdbot.data.repository.ComradesRepository
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
+import su.redbyte.androidkrdbot.domain.model.Comrade
 import su.redbyte.androidkrdbot.infra.utils.candidateName
 import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromBot
 import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromUser
 import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
 
 class CheckAnswerUseCase(
-    private val verificationRepository: VerificationRepository
+    private val verificationRepository: VerificationRepository,
+    private val comradesRepository: ComradesRepository
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
         userId: Long,
         rawAnswer: String,
         bot: Bot
@@ -20,21 +23,18 @@ class CheckAnswerUseCase(
         val record = verificationRepository.get(userId) ?: return
         verificationRepository.cancelTimer(userId)
         verificationRepository.remove(userId)
-
         val answer = rawAnswer.trim().lowercase()
         val ok = record.question.correctAnswers.any { answer == it.trim().lowercase() }
-
         val chatId = record.chatId
         val user = record.user
-
         if (ok) {
+            comradesRepository.put(Comrade(userId,user.firstName, user.candidateName()))
             bot.sendAndCacheMessage(
                 chatId,
                 "✔️ ${user.candidateName()} успешно прошёл проверку! Добро пожаловать."
             )
             return
         }
-
         when (val result = bot.getChatMember(chatId, userId)) {
             is Success -> {
                 val status = result.value.status
@@ -49,10 +49,8 @@ class CheckAnswerUseCase(
                     deleteMessagesFromBot(bot, chatId)
                 }
             }
-
-            is Error -> {
-                println("❌ [ANSWER] Ошибка getChatMember для $userId")
-            }
+            is Error -> {}
         }
     }
 }
+

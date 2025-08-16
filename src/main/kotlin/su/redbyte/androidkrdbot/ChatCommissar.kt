@@ -32,7 +32,7 @@ fun main() = runBlocking {
 
     val getRandomQuestion = GetRandomQuestionUseCase(questionRepo)
     val scheduleVerification = ScheduleVerificationUseCase(verificationRepo, appScope)
-    val checkAnswer = CheckAnswerUseCase(verificationRepo)
+    val checkAnswer = CheckAnswerUseCase(verificationRepo, comradesRepo)
     val checkAdminRights = IsUserAdminUseCase(chatAdminRepo)
     val getAdmins = GetAdminsUseCase(chatAdminRepo)
     val checkBan = CheckBanUseCase(interrogationRepo)
@@ -62,7 +62,7 @@ fun main() = runBlocking {
 
     val messageListeners = listOf(
         CacheComradeListener(appScope, fetchComrades),
-        AnswerListener(checkAnswer),
+        AnswerListener(checkAnswer, getRandomQuestion, scheduleVerification, verificationRepo, comradesRepo),
         CacheMessageListener(),
         ReplyToMessageListener(markovRepo)
     )
