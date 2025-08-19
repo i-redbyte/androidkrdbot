@@ -43,7 +43,16 @@ class InterrogationCmd(
                     comrade?.let { checkAndRespond(ctx, chatId, it, SINGLE) }
                 }
 
-                else -> ctx.reply("⚠️ Используйте: /interrogation, /interrogation all или /interrogation @username")
+                ctx.args[0] == "id" -> {
+                    try {
+                        val userId = ctx.args[1].filter { it.isDigit() }.toLong()
+                        checkAndRespond(ctx, chatId, Comrade(userId, "$userId", ""), SINGLE)
+                    } catch (e: TypeCastException) {
+                        ctx.reply("⚠️ Используйте только числовой id!")
+                    }
+                }
+
+                else -> ctx.reply("⚠️ Используйте: /interrogation, /interrogation id, /interrogation all или /interrogation @username")
             }
         }
     }
@@ -59,7 +68,7 @@ class InterrogationCmd(
         val banned = checkBan(comrade.id)
         val resultText = if (banned) {
             """
-📣 По данным Службы Внешней Разведки, товарищ ${comrade.name} признан врагом народа!
+📣 По данным Службы Внешней Разведки, товарищ ${comrade.name.takeIf { it.isNotEmpty() } ?: comrade.id} признан врагом народа!
 Он приговаривается к высшей мере наказания.
         """
         } else {
