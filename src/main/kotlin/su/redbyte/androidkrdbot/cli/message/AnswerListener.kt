@@ -14,12 +14,14 @@ class AnswerListener(
     private val getRandomQuestion: GetRandomQuestionUseCase,
     private val scheduleVerification: ScheduleVerificationUseCase,
     private val verificationRepository: VerificationRepository,
-    private val comradesRepository: ComradesRepository
+    private val comradesRepository: ComradesRepository,
 ) : MessageListener {
+
     override suspend fun handle(ctx: MessageContext) {
         val message = ctx.message
         val from: User = message.from ?: return
-        if (from.isBot) return
+        val myId = ctx.bot.getMe().get().id
+        if (from.id == myId) return
         val text = message.text ?: return
         val userId = from.id
         val chatId = ctx.chatId

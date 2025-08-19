@@ -48,12 +48,18 @@ fun Bot.sendAndCacheMessage(
 ): TelegramBotResult<Message> {
     //todo: for test
     println("[Bot]: $text")
-    val response = sendMessage(chatId, text, parseMode = ParseMode.MARKDOWN )
+    val response = sendMessage(chatId, text, parseMode = ParseMode.MARKDOWN)
     val botId = this.getMe().get().id
     response.getOrNull()?.let {
         MessageCache.add(chatId.rawChatId(), botId, it.messageId)
     }
     return response
+}
+
+fun Bot.banUser(chatId: ChatId, userId: Long, deleteUserMessages: Boolean = true) {
+    banChatMember(chatId, userId)
+    unbanChatMember(chatId, userId)
+    if (deleteUserMessages) deleteMessagesFromUser(this, chatId, userId)
 }
 
 fun Message.containsBotMention(botUserName: String): Boolean =

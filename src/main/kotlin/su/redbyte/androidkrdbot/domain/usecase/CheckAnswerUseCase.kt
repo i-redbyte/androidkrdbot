@@ -6,10 +6,7 @@ import com.github.kotlintelegrambot.types.TelegramBotResult.Success
 import su.redbyte.androidkrdbot.data.repository.ComradesRepository
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.model.Comrade
-import su.redbyte.androidkrdbot.infra.utils.candidateName
-import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromBot
-import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromUser
-import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
+import su.redbyte.androidkrdbot.infra.utils.*
 
 class CheckAnswerUseCase(
     private val verificationRepository: VerificationRepository,
@@ -39,9 +36,7 @@ class CheckAnswerUseCase(
             is Success -> {
                 val status = result.value.status
                 if (status != "left" && status != "kicked") {
-                    bot.banChatMember(chatId, userId)
-                    bot.unbanChatMember(chatId, userId)
-                    deleteMessagesFromUser(bot, chatId, userId)
+                    bot.banUser(chatId, userId)
                     bot.sendAndCacheMessage(
                         chatId,
                         "❌ ${user.candidateName()} дал неправильный ответ и был удалён."

@@ -61,8 +61,18 @@ fun main() = runBlocking {
     )
 
     val messageListeners = listOf(
-        CacheComradeListener(appScope, fetchComrades),
-        AnswerListener(checkAnswer, getRandomQuestion, scheduleVerification, verificationRepo, comradesRepo),
+        CacheComradeListener(
+            appScope,
+            fetchComrades,
+            checkBan
+        ),
+        AnswerListener(
+            checkAnswer,
+            getRandomQuestion,
+            scheduleVerification,
+            verificationRepo,
+            comradesRepo,
+        ),
         CacheMessageListener(),
         ReplyToMessageListener(markovRepo)
     )

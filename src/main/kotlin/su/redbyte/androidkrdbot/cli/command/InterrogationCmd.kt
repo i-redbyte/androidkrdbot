@@ -4,14 +4,12 @@ import com.github.kotlintelegrambot.entities.ChatId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import su.redbyte.androidkrdbot.data.repository.MessageCache
 import su.redbyte.androidkrdbot.domain.model.InterrogationState.*
 import su.redbyte.androidkrdbot.domain.model.Comrade
 import su.redbyte.androidkrdbot.domain.usecase.FetchComradesUseCase
 import su.redbyte.androidkrdbot.domain.usecase.CheckBanUseCase
+import su.redbyte.androidkrdbot.infra.utils.banUser
 import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromBot
-import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromUser
-import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
 
 class InterrogationCmd(
     private val scope: CoroutineScope,
@@ -31,7 +29,7 @@ class InterrogationCmd(
                 }
 
                 ctx.args[0] == "all" -> {
-                    val uid = ctx.userId ?: return@launch
+                    ctx.userId ?: return@launch
                     ctx.reply("🔍 Началась проверка всех товарищей...")
                     comrades.forEach { checkAndRespond(ctx, chatId, it, ALL) }
                     ctx.reply("🔍 Проверка окончена")
@@ -79,9 +77,7 @@ class InterrogationCmd(
             ALL -> if (!banned) println(resultText) else ctx.reply(resultText)
         }
         if (banned) {
-            ctx.bot.banChatMember(chatId, comrade.id)
-            ctx.bot.unbanChatMember(chatId, comrade.id)
-            deleteMessagesFromUser(ctx.bot, chatId, comrade.id)
+            ctx.bot.banUser(chatId, comrade.id)
             delay(5_000)
             deleteMessagesFromBot(ctx.bot, chatId)
         }
