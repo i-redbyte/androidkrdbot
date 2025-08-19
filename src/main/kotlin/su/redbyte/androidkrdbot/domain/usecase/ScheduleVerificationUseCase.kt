@@ -10,10 +10,7 @@ import kotlinx.coroutines.launch
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.model.VerificationRecord
-import su.redbyte.androidkrdbot.infra.utils.candidateName
-import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromBot
-import su.redbyte.androidkrdbot.infra.utils.deleteMessagesFromUser
-import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
+import su.redbyte.androidkrdbot.infra.utils.*
 
 class ScheduleVerificationUseCase(
     private val repository: VerificationRepository,
@@ -34,9 +31,7 @@ class ScheduleVerificationUseCase(
                 is TelegramBotResult.Success -> {
                     val status = result.value.status
                     if (status != "left" && status != "kicked") {
-                        bot.banChatMember(chatId, user.id)
-                        bot.unbanChatMember(chatId, user.id)
-                        deleteMessagesFromUser(bot, chatId, user.id)
+                        bot.banUser(chatId, user.id)
                         bot.sendAndCacheMessage(
                             chatId,
                             "Товарищ ${user.candidateName()} не прошёл проверку и был удалён."
