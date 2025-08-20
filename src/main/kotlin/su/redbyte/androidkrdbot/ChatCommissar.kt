@@ -4,7 +4,6 @@ import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.*
 import su.redbyte.androidkrdbot.cli.command.*
 import su.redbyte.androidkrdbot.cli.comrade.CleanupLeftMemberListener
-import su.redbyte.androidkrdbot.cli.comrade.VerificationNewComradeListener
 import su.redbyte.androidkrdbot.infra.engine.BotEngine
 import su.redbyte.androidkrdbot.cli.message.*
 import su.redbyte.androidkrdbot.infra.middleware.AdminOnly
@@ -31,7 +30,7 @@ fun main() = runBlocking {
     val libraryRepo = LibraryRepository()
 
     val getRandomQuestion = GetRandomQuestionUseCase(questionRepo)
-    val scheduleVerification = ScheduleVerificationUseCase(verificationRepo, appScope)
+    val scheduleVerification = ScheduleVerificationUseCase(verificationRepo, appScope, comradesRepo)
     val checkAnswer = CheckAnswerUseCase(verificationRepo, comradesRepo)
     val checkAdminRights = IsUserAdminUseCase(chatAdminRepo)
     val getAdmins = GetAdminsUseCase(chatAdminRepo)
@@ -53,18 +52,18 @@ fun main() = runBlocking {
         VerificationStatusCmd(verificationState),
         ReloadQuestionsCmd(),
         InterrogationCmd(appScope, fetchComrades, checkBan),
-        ShowPolitburoMembersCmd(getAdmins),
         CommandListCmd(),
         LootInfoCmd(searchArticles),
         FetchDigestCmd(appScope, fetchDigest),
-        LibUpdatesCmd(fetchLibraryUpdates)
+        LibUpdatesCmd(fetchLibraryUpdates),
+        ShowPolitburoMembersCmd(getAdmins)
     )
 
     val messageListeners = listOf(
+        CacheMessageListener(checkBan),
         CacheComradeListener(
             appScope,
             fetchComrades,
-            checkBan
         ),
         AnswerListener(
             checkAnswer,
@@ -73,17 +72,10 @@ fun main() = runBlocking {
             verificationRepo,
             comradesRepo,
         ),
-        CacheMessageListener(),
         ReplyToMessageListener(markovRepo)
     )
     val newComradeListener = listOf(
         CleanupLeftMemberListener(verificationRepo),
-        VerificationNewComradeListener(
-            getRandomQuestion,
-            scheduleVerification,
-            checkAdminRights,
-            appScope
-        ),
     )
     val adminOnly = AdminOnly(checkAdminRights)
     val rateLimit = RateLimit()

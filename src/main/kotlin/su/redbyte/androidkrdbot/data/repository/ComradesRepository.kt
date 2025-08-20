@@ -46,4 +46,19 @@ class ComradesRepository(
     suspend fun put(comrade: Comrade) = mutex.withLock {
         comradesCache[comrade.id] = comrade
     }
+
+    suspend fun remove(id: Long) = mutex.withLock {
+        comradesCache.remove(id)
+    }
+
+    suspend fun refreshCache(): Result<List<Comrade>> = mutex.withLock {
+        try {
+            comradesCache.clear()
+            val fetched = fetchComrades(apiId, apiHash)
+            comradesCache.putAll(fetched.associateBy { it.id })
+            Result.success(comradesCache.values.toList())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

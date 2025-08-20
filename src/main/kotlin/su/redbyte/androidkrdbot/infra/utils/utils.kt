@@ -46,9 +46,8 @@ fun Bot.sendAndCacheMessage(
     chatId: ChatId,
     text: String
 ): TelegramBotResult<Message> {
-    //todo: for test
-    println("[Bot]: $text")
-    val response = sendMessage(chatId, text, parseMode = ParseMode.MARKDOWN)
+    val safe = escapeMarkdownV2(text)
+    val response = sendMessage(chatId, safe, parseMode = ParseMode.MARKDOWN_V2)
     val botId = this.getMe().get().id
     response.getOrNull()?.let {
         MessageCache.add(chatId.rawChatId(), botId, it.messageId)
@@ -68,3 +67,6 @@ fun Message.containsBotMention(botUserName: String): Boolean =
         ?.any { text?.substring(it.offset, it.offset + it.length) == "@$botUserName" }
         ?: false
 
+private fun escapeMarkdownV2(text: String): String {
+    return text.replace(Regex("""([_*\[\]()~`>#+\-=|{}.!\\])""")) { "\\${it.value}" }
+}
