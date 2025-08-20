@@ -25,11 +25,13 @@ class CheckAnswerUseCase(
         val chatId = record.chatId
         val user = record.user
         if (ok) {
-            comradesRepository.put(Comrade(userId,user.firstName, user.candidateName()))
+            comradesRepository.put(Comrade(userId, user.firstName, user.candidateName()))
             bot.sendAndCacheMessage(
                 chatId,
                 "✔️ ${user.candidateName()} успешно прошёл проверку! Добро пожаловать."
             )
+            deleteMessagesFromUser(bot, chatId, userId)
+            deleteMessagesFromBot(bot, chatId,2)
             return
         }
         when (val result = bot.getChatMember(chatId, userId)) {
@@ -42,8 +44,10 @@ class CheckAnswerUseCase(
                         "❌ ${user.candidateName()} дал неправильный ответ и был удалён."
                     )
                     deleteMessagesFromBot(bot, chatId)
+                    comradesRepository.remove(userId)
                 }
             }
+
             is Error -> {}
         }
     }

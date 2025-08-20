@@ -7,6 +7,7 @@ import com.github.kotlintelegrambot.types.TelegramBotResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import su.redbyte.androidkrdbot.data.repository.ComradesRepository
 import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.model.VerificationRecord
@@ -14,7 +15,8 @@ import su.redbyte.androidkrdbot.infra.utils.*
 
 class ScheduleVerificationUseCase(
     private val repository: VerificationRepository,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val comradesRepository: ComradesRepository
 ) {
 
     operator fun invoke(
@@ -37,6 +39,7 @@ class ScheduleVerificationUseCase(
                             "Товарищ ${user.candidateName()} не прошёл проверку и был удалён."
                         )
                         deleteMessagesFromBot(bot, chatId)
+                        comradesRepository.remove(user.id)
                     }
                 }
 
