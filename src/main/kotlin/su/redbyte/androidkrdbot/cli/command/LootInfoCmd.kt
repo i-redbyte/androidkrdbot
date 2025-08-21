@@ -1,5 +1,6 @@
 package su.redbyte.androidkrdbot.cli.command
 
+import com.github.kotlintelegrambot.entities.ParseMode
 import su.redbyte.androidkrdbot.domain.usecase.SearchArticlesUseCase
 
 class LootInfoCmd(
@@ -20,7 +21,7 @@ class LootInfoCmd(
                 grouped.forEach { (source, results) ->
                     val message =
                         "Результат экспроприации [${source.sourceName}]:\n\n${results.joinToString("\n\n") { it.prettyWithUrl() }} "
-                    ctx.reply(message)
+                    ctx.reply(message, ParseMode.MARKDOWN)
                 }
             }
         } catch (e: Exception) {

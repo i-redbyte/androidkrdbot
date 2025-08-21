@@ -2,6 +2,7 @@ package su.redbyte.androidkrdbot.infra.schedulers
 
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.ChatId
+import com.github.kotlintelegrambot.entities.ParseMode
 import kotlinx.coroutines.*
 import su.redbyte.androidkrdbot.domain.usecase.FetchDigestUseCase
 import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
@@ -40,7 +41,7 @@ class DailyTaskScheduler(
                     } else {
                         text
                     }
-                    bot.sendAndCacheMessage(chatId, message)
+                    bot.sendAndCacheMessage(chatId, message, ParseMode.MARKDOWN)
                     println("[DailyTaskScheduler]: Digest fetch started at ${LocalDateTime.now()} with result:\n$message")
                 } catch (e: Exception) {
                     bot.sendAndCacheMessage(chatId, "\uD83D\uDEA8 Ошибка при отправке дайджеста")
