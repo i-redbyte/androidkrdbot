@@ -6,6 +6,7 @@ import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.model.Question
 import su.redbyte.androidkrdbot.domain.usecase.CheckAnswerUseCase
+import su.redbyte.androidkrdbot.domain.usecase.CheckBanUseCase
 import su.redbyte.androidkrdbot.domain.usecase.GetRandomQuestionUseCase
 import su.redbyte.androidkrdbot.domain.usecase.ScheduleVerificationUseCase
 
@@ -15,6 +16,7 @@ class AnswerListener(
     private val scheduleVerification: ScheduleVerificationUseCase,
     private val verificationRepository: VerificationRepository,
     private val comradesRepository: ComradesRepository,
+    private val checkBan: CheckBanUseCase
 ) : MessageListener {
 
     override suspend fun handle(ctx: MessageContext) {
@@ -24,6 +26,7 @@ class AnswerListener(
         if (from.id == myId) return
         val text = message.text ?: return
         val userId = from.id
+        if (checkBan(userId)) return
         val chatId = ctx.chatId
         if (verificationRepository.get(userId) != null) {
             checkAnswerUseCase(userId, text, ctx.bot)

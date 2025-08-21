@@ -44,10 +44,14 @@ fun deleteMessagesFromBot(bot: Bot, chatId: ChatId, n: Int = 3) {
 
 fun Bot.sendAndCacheMessage(
     chatId: ChatId,
-    text: String
+    text: String,
+    parseMode: ParseMode = ParseMode.MARKDOWN_V2
 ): TelegramBotResult<Message> {
-    val safe = escapeMarkdownV2(text)
-    val response = sendMessage(chatId, safe, parseMode = ParseMode.MARKDOWN_V2)
+    val response = if (parseMode == ParseMode.MARKDOWN_V2) {
+        sendMessage(chatId, escapeMarkdownV2(text), parseMode = ParseMode.MARKDOWN_V2)
+    } else {
+        sendMessage(chatId, text, parseMode = parseMode)
+    }
     val botId = this.getMe().get().id
     response.getOrNull()?.let {
         MessageCache.add(chatId.rawChatId(), botId, it.messageId)

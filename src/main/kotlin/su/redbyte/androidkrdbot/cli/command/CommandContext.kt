@@ -3,6 +3,7 @@ package su.redbyte.androidkrdbot.cli.command
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.Message
+import com.github.kotlintelegrambot.entities.ParseMode
 import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
 
 class CommandContext(
@@ -14,8 +15,8 @@ class CommandContext(
     val rawChatId: Long = message.chat.id
     val userId: Long? = message.from?.id
 
-    fun reply(text: String) =
-        bot.sendAndCacheMessage(chatId, text)
+    fun reply(text: String, parseMode: ParseMode = ParseMode.MARKDOWN_V2) =
+        bot.sendAndCacheMessage(chatId, text, parseMode)
 
 }
 

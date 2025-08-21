@@ -4,6 +4,7 @@ import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.*
 import su.redbyte.androidkrdbot.cli.command.*
 import su.redbyte.androidkrdbot.cli.comrade.CleanupLeftMemberListener
+import su.redbyte.androidkrdbot.cli.comrade.VerificationNewComradeListener
 import su.redbyte.androidkrdbot.infra.engine.BotEngine
 import su.redbyte.androidkrdbot.cli.message.*
 import su.redbyte.androidkrdbot.infra.middleware.AdminOnly
@@ -71,11 +72,19 @@ fun main() = runBlocking {
             scheduleVerification,
             verificationRepo,
             comradesRepo,
+            checkBan
         ),
         ReplyToMessageListener(markovRepo)
     )
     val newComradeListener = listOf(
         CleanupLeftMemberListener(verificationRepo),
+        VerificationNewComradeListener(
+            getRandomQuestion,
+            scheduleVerification,
+            checkAdminRights,
+            appScope,
+            checkBan
+        ),
     )
     val adminOnly = AdminOnly(checkAdminRights)
     val rateLimit = RateLimit()
