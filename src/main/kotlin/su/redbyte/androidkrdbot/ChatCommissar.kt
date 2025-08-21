@@ -57,7 +57,8 @@ fun main() = runBlocking {
         LootInfoCmd(searchArticles),
         FetchDigestCmd(appScope, fetchDigest),
         LibUpdatesCmd(fetchLibraryUpdates),
-        ShowPolitburoMembersCmd(getAdmins)
+        ShowPolitburoMembersCmd(getAdmins),
+        GameCmd()
     )
 
     val messageListeners = listOf(
