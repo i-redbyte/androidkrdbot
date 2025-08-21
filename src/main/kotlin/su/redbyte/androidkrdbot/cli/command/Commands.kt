@@ -36,12 +36,16 @@ enum class Commands(
         commandName = "libUpdates",
         description = "Получить информацию о последней версии указанной библиотеки"
     ),
-    COMMAND_LIST(
-        commandName = "commandList",
-        description = "Вывести список команд бота"
-    ),
     DIGEST(
         commandName = "digest",
         description = "Краткая выжимка за сутки из популярных IT-каналов"
+    ),
+    GAME(
+        commandName = "game",
+        description = "Поиграем?!"
+    ),
+    COMMAND_LIST(
+        commandName = "commandList",
+        description = "Вывести список команд бота"
     ),
 }
