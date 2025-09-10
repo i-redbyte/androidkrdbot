@@ -3,9 +3,9 @@ package su.redbyte.androidkrdbot.domain.usecase
 import su.redbyte.androidkrdbot.data.repository.ComradesRepository
 import su.redbyte.androidkrdbot.domain.model.Comrade
 
-class FetchComradesUseCase (
+class FetchComradesUseCase(
     private val repository: ComradesRepository
-){
+) {
     suspend operator fun invoke(): List<Comrade> {
         return repository.getAll().getOrThrow()
     }
@@ -17,4 +17,9 @@ class FetchComradesUseCase (
     suspend fun ensureCached(id: Long): Comrade? = repository.ensureCached(id)
 
     suspend fun put(comrade: Comrade) = repository.put(comrade)
+
+    suspend fun invalidateFromCache(ids: Iterable<Long>) = repository.invalidateAll(ids)
+
+    suspend fun invalidateFromCache(id: Long) = repository.remove(id)
+
 }

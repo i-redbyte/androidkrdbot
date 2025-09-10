@@ -3,7 +3,12 @@ package su.redbyte.androidkrdbot.infra.utils
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.*
 import com.github.kotlintelegrambot.types.TelegramBotResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import su.redbyte.androidkrdbot.data.repository.MessageCache
+import su.redbyte.androidkrdbot.infra.hooks.CacheHooks
 
 fun User.candidateName(): String = username?.let { "@$it" } ?: firstName
 
@@ -59,10 +64,19 @@ fun Bot.sendAndCacheMessage(
     return response
 }
 
-fun Bot.banUser(chatId: ChatId, userId: Long, deleteUserMessages: Boolean = true) {
+@OptIn(DelicateCoroutinesApi::class)
+fun Bot.banUser(
+    chatId: ChatId,
+    userId: Long,
+    scope: CoroutineScope? = null,
+    deleteUserMessages: Boolean = true
+) {
     banChatMember(chatId, userId)
     unbanChatMember(chatId, userId)
     if (deleteUserMessages) deleteMessagesFromUser(this, chatId, userId)
+    CacheHooks.onUserBanned?.let { handler ->
+        scope?.launch { handler(userId) } ?: GlobalScope.launch { handler(userId) }
+    }
 }
 
 fun Message.containsBotMention(botUserName: String): Boolean =

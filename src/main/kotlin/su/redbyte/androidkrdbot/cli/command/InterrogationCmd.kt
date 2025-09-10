@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import su.redbyte.androidkrdbot.domain.model.InterrogationState.*
 import su.redbyte.androidkrdbot.domain.model.Comrade
+import su.redbyte.androidkrdbot.domain.model.InterrogationState
 import su.redbyte.androidkrdbot.domain.usecase.FetchComradesUseCase
 import su.redbyte.androidkrdbot.domain.usecase.CheckBanUseCase
 import su.redbyte.androidkrdbot.infra.utils.banUser
@@ -25,26 +26,26 @@ class InterrogationCmd(
             when {
                 ctx.args.isEmpty() -> {
                     val comrade = comrades.randomOrNull()
-                    if (comrade != null) checkAndRespond(ctx, chatId, comrade, SINGLE)
+                    if (comrade != null) checkAndRespond(ctx, chatId, comrade, scope)
                 }
 
                 ctx.args[0] == "all" -> {
                     ctx.userId ?: return@launch
                     ctx.reply("🔍 Началась проверка всех товарищей...")
-                    comrades.forEach { checkAndRespond(ctx, chatId, it, ALL) }
+                    comrades.forEach { checkAndRespond(ctx, chatId, it, scope, ALL) }
                     ctx.reply("🔍 Проверка окончена")
                 }
 
                 ctx.args[0].startsWith("@") -> {
                     val username = ctx.args[0].trimStart('@')
                     val comrade = fetchComrades.findByUsername(username)
-                    comrade?.let { checkAndRespond(ctx, chatId, it, SINGLE) }
+                    comrade?.let { checkAndRespond(ctx, chatId, it, scope) }
                 }
 
                 ctx.args[0] == "id" -> {
                     try {
                         val userId = ctx.args[1].filter { it.isDigit() }.toLong()
-                        checkAndRespond(ctx, chatId, Comrade(userId, "$userId", ""), SINGLE)
+                        checkAndRespond(ctx, chatId, Comrade(userId, "$userId", ""), scope)
                     } catch (e: TypeCastException) {
                         ctx.reply("⚠️ Используйте только числовой id!")
                     }
@@ -59,7 +60,8 @@ class InterrogationCmd(
         ctx: CommandContext,
         chatId: ChatId,
         comrade: Comrade,
-        state: su.redbyte.androidkrdbot.domain.model.InterrogationState
+        scope: CoroutineScope,
+        state: InterrogationState = SINGLE
     ) {
         val usernamePart = if (comrade.userName.isNotEmpty()) "он же @${comrade.userName}" else ""
         if (state == SINGLE) ctx.reply("🔍 Проверяю товарища ${comrade.name} $usernamePart ...")
@@ -77,7 +79,7 @@ class InterrogationCmd(
             ALL -> if (!banned) println(resultText) else ctx.reply(resultText)
         }
         if (banned) {
-            ctx.bot.banUser(chatId, comrade.id)
+            ctx.bot.banUser(chatId, comrade.id, scope)
             delay(5_000)
             deleteMessagesFromBot(ctx.bot, chatId)
         }
