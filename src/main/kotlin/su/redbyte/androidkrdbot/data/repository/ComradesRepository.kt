@@ -51,14 +51,17 @@ class ComradesRepository(
         comradesCache.remove(id)
     }
 
-    suspend fun refreshCache(): Result<List<Comrade>> = mutex.withLock {
-        try {
+    suspend fun refreshCache(): Result<List<Comrade>> = runCatching {
+        val fetched = fetchComrades(apiId, apiHash)
+        val byId = fetched.associateBy { it.id }
+        mutex.withLock {
             comradesCache.clear()
-            val fetched = fetchComrades(apiId, apiHash)
-            comradesCache.putAll(fetched.associateBy { it.id })
-            Result.success(comradesCache.values.toList())
-        } catch (e: Exception) {
-            Result.failure(e)
+            comradesCache.putAll(byId)
         }
+        fetched
+    }
+
+    suspend fun invalidateAll(ids: Iterable<Long>) = mutex.withLock {
+        ids.forEach(comradesCache::remove)
     }
 }

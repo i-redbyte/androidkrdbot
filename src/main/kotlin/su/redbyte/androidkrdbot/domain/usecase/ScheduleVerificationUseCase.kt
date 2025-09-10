@@ -33,7 +33,7 @@ class ScheduleVerificationUseCase(
                 is TelegramBotResult.Success -> {
                     val status = result.value.status
                     if (status != "left" && status != "kicked") {
-                        bot.banUser(chatId, user.id)
+                        bot.banUser(chatId, user.id, scope)
                         bot.sendAndCacheMessage(
                             chatId,
                             "Товарищ ${user.candidateName()} не прошёл проверку и был удалён."

@@ -13,6 +13,7 @@ import su.redbyte.androidkrdbot.infra.middleware.RateLimit
 import su.redbyte.androidkrdbot.data.repository.*
 import su.redbyte.androidkrdbot.domain.VerificationState
 import su.redbyte.androidkrdbot.domain.usecase.*
+import su.redbyte.androidkrdbot.infra.hooks.CacheHooks
 
 fun main() = runBlocking {
     val env = dotenv()
@@ -46,7 +47,9 @@ fun main() = runBlocking {
         val comrades = fetchComrades()
         println("📦 Загрузили ${comrades.size} товарищей. ${comrades.random()}!!!")
     }
-
+    CacheHooks.onUserBanned = { userId ->
+        fetchComrades.invalidateFromCache(userId)
+    }
     val commands = listOf(
         StartVerificationCmd(verificationState),
         StopVerificationCmd(verificationState),
