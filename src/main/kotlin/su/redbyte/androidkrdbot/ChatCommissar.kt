@@ -61,7 +61,8 @@ fun main() = runBlocking {
         FetchDigestCmd(appScope, fetchDigest),
         LibUpdatesCmd(fetchLibraryUpdates),
         ShowPolitburoMembersCmd(getAdmins),
-        GameCmd()
+        GameCmd(),
+        KillDeadCmd(appScope, fetchComrades)
     )
 
     val messageListeners = listOf(

@@ -44,6 +44,10 @@ enum class Commands(
         commandName = "game",
         description = "Поиграем?!"
     ),
+    KILL_DEAD(
+        commandName = "killDead",
+        description = "Очистить чат от \"мертвых\" душ"
+    ),
     COMMAND_LIST(
         commandName = "commandList",
         description = "Вывести список команд бота"
