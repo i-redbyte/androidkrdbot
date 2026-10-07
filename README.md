@@ -20,7 +20,7 @@
 
 ## ⚙️ Установка
 
-> Требуется: JDK 17+, Gradle, Python 3.10+, Telegram Bot Token
+> Требуется: JDK 17+, Gradle, Python **3.10–3.13** (не 3.14 — Pyrogram пока несовместим), Telegram Bot Token
 
 1. Клонируй репозиторий:
    ```bash
@@ -38,14 +38,16 @@
    # PYTHON_PATH=/usr/local/bin/python3
    ```
 
-3. Установи зависимости Python для скриптов `script/` (участники чата, дайджест):
+3. Установи зависимости Python для скриптов `script/` (участники чата, дайджест). Используй интерпретатор **3.10–3.13** (например 3.12); **не используй Python 3.14** — при импорте Pyrogram возможна ошибка event loop в asyncio.
 
    ```bash
-   python3 -m venv venv
+   python3.12 -m venv venv
    ./venv/bin/pip install -r requirements.txt
    ```
 
-   На сервере продакшена обычно используется тот же каталог с `venv/` рядом с jar. Локально можно вместо venv указать системный Python через `PYTHON_PATH` в `.env`, если пакет `pyrogram` уже установлен.
+   На macOS, если `python3` указывает на 3.14, установи 3.12 (`brew install python@3.12`) и создавай venv явно через `python3.12`.
+
+   На сервере продакшена обычно используется тот же каталог с `venv/` рядом с jar. Локально можно вместо venv указать системный Python через `PYTHON_PATH` в `.env`, если пакет `pyrogram` уже установлен в подходящей версии Python.
 
 4. Убедись, что у тебя есть файл с вопросами:  
    `src/main/resources/questions.json`
