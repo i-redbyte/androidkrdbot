@@ -20,7 +20,14 @@ fun main() = runBlocking {
     val token = env["TELEGRAM_BOT_TOKEN"] ?: error("TELEGRAM_BOT_TOKEN is not set")
     val apiId = env["API_ID"] ?: error("API_ID is not set")
     val apiHash = env["API_HASH"] ?: error("API_HASH is not set")
-    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val appScope = CoroutineScope(
+        SupervisorJob() +
+            Dispatchers.Default +
+            CoroutineExceptionHandler { _, e ->
+                println("⚠️ Ошибка в фоновой задаче: ${e.message}")
+                e.printStackTrace()
+            }
+    )
 
     val questionRepo = QuestionRepository()
     val verificationRepo = VerificationRepository()
@@ -44,8 +51,20 @@ fun main() = runBlocking {
     val verificationState = VerificationState
 
     appScope.launch {
-        val comrades = fetchComrades()
-        println("📦 Загрузили ${comrades.size} товарищей. ${comrades.random()}!!!")
+        runCatching { fetchComrades() }
+            .onSuccess { comrades ->
+                if (comrades.isEmpty()) {
+                    println(
+                        "📦 Загрузили 0 товарищей. Проверьте сессию Pyrogram (файлы bot_auth*.session в корне проекта) " +
+                            "и что аккаунт API_ID/API_HASH состоит в @androidkrd."
+                    )
+                } else {
+                    println("📦 Загрузили ${comrades.size} товарищей. ${comrades.random()}!!!")
+                }
+            }
+            .onFailure { e ->
+                println("📦 Не удалось загрузить товарищей: ${e.message}")
+            }
     }
     CacheHooks.onUserBanned = { userId ->
         fetchComrades.invalidateFromCache(userId)
