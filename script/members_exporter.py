@@ -22,6 +22,7 @@ async def get_members(api_id: int, api_hash: str):
             print(json.dumps(members))  # to stdout
         except Exception as e:
             print(f"ERROR: {e}", file=sys.stderr)
+            sys.exit(1)
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:

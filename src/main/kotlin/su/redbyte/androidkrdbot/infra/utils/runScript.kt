@@ -16,7 +16,12 @@ suspend fun fetchComrades(apiId: String, apiHash: String): List<Comrade> = withC
     val output = processScript(apiId, apiHash, MEMBERS_EXPORTER)
 
     val jsonStartIndex = output.indexOf("[")
-    if (jsonStartIndex == -1) error("JSON output not found in script output")
+    if (jsonStartIndex == -1) {
+        error(
+            "JSON output not found in script output. " +
+                "Частая причина: нет авторизованной Pyrogram-сессии bot_auth — один раз запустите script/members_exporter.py из корня проекта."
+        )
+    }
 
     val jsonText = output.substring(jsonStartIndex).trim()
 
