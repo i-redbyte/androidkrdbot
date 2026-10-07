@@ -1,5 +1,6 @@
 package su.redbyte.androidkrdbot.infra.utils
 
+import io.github.cdimascio.dotenv.dotenv
 import kotlinx.serialization.json.Json
 import su.redbyte.androidkrdbot.domain.model.Comrade
 import java.lang.ProcessBuilder
@@ -32,11 +33,10 @@ private fun processScript(apiId: String, apiHash: String, scriptName: String): S
     val scriptFile = File(baseDir, "script/$scriptName")
     require(scriptFile.exists()) { "Python-скрипт не найден: ${scriptFile.absolutePath}" }
 
-    val pythonFile = File(baseDir, "venv/bin/python3")
-    require(pythonFile.exists()) { "Python интерпретатор не найден: ${pythonFile.absolutePath}" }
+    val pythonExecutable = resolvePythonExecutable(baseDir)
 
     val process = ProcessBuilder(
-        pythonFile.absolutePath,
+        pythonExecutable,
         scriptFile.absolutePath,
         apiId,
         apiHash,
@@ -63,6 +63,52 @@ private fun processScript(apiId: String, apiHash: String, scriptName: String): S
         }
     }
     return output
+}
+
+/**
+ * Python for Pyrogram scripts: PYTHON_PATH / PYTHON (env or .env), then ./venv/bin/python3, then python3 on PATH.
+ */
+internal fun resolvePythonExecutable(baseDir: File): String {
+    listOf("PYTHON_PATH", "PYTHON").forEach { key ->
+        readConfigValue(key)?.let { candidate ->
+            return normalizePythonCandidate(candidate, baseDir)
+        }
+    }
+
+    val venvPython = File(baseDir, "venv/bin/python3")
+    if (venvPython.isFile) {
+        return venvPython.absolutePath
+    }
+
+    return "python3"
+}
+
+private fun readConfigValue(key: String): String? {
+    val fromEnv = System.getenv(key)?.trim()?.takeIf { it.isNotEmpty() }
+    if (fromEnv != null) return fromEnv
+    return runCatching { dotenv()[key]?.trim()?.takeIf { it.isNotEmpty() } }.getOrNull()
+}
+
+private fun normalizePythonCandidate(candidate: String, baseDir: File): String {
+    val file = File(candidate)
+    val resolved = when {
+        file.isAbsolute -> file
+        else -> File(baseDir, candidate)
+    }
+    if (resolved.isFile) {
+        return resolved.absolutePath
+    }
+    if (!file.isAbsolute) {
+        return candidate
+    }
+    error(
+        """
+        Python интерпретатор не найден: ${resolved.absolutePath}
+        Укажите PYTHON_PATH в .env, создайте venv в корне проекта:
+          python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
+        или установите python3 в PATH.
+        """.trimIndent()
+    )
 }
 
 fun detectBaseDir(): File {

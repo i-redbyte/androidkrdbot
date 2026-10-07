@@ -20,7 +20,7 @@
 
 ## ⚙️ Установка
 
-> Требуется: JDK 17+, Gradle, Telegram Bot Token
+> Требуется: JDK 17+, Gradle, Python 3.10+, Telegram Bot Token
 
 1. Клонируй репозиторий:
    ```bash
@@ -32,9 +32,22 @@
 
    ```env
    TELEGRAM_BOT_TOKEN=123456789:ABCDEFyourTokenHere
+   API_ID=your_telegram_api_id
+   API_HASH=your_telegram_api_hash
+   # Необязательно: путь к python (по умолчанию ./venv/bin/python3 или python3 из PATH)
+   # PYTHON_PATH=/usr/local/bin/python3
    ```
 
-3. Убедись, что у тебя есть файл с вопросами:  
+3. Установи зависимости Python для скриптов `script/` (участники чата, дайджест):
+
+   ```bash
+   python3 -m venv venv
+   ./venv/bin/pip install -r requirements.txt
+   ```
+
+   На сервере продакшена обычно используется тот же каталог с `venv/` рядом с jar. Локально можно вместо venv указать системный Python через `PYTHON_PATH` в `.env`, если пакет `pyrogram` уже установлен.
+
+4. Убедись, что у тебя есть файл с вопросами:  
    `src/main/resources/questions.json`
 
    Пример:
@@ -48,7 +61,7 @@
    ]
    ```
 
-4. Запусти бота:
+5. Запусти бота:
    ```bash
    ./gradlew run
    ```
