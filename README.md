@@ -20,7 +20,7 @@
 
 ## ⚙️ Установка
 
-> Требуется: JDK 17+, Gradle, Python **3.10–3.13** (не 3.14 — Pyrogram пока несовместим), Telegram Bot Token
+> Требуется: JDK 17+, Gradle, Python **3.10–3.14**, Telegram Bot Token
 
 1. Клонируй репозиторий:
    ```bash
@@ -38,16 +38,14 @@
    # PYTHON_PATH=/usr/local/bin/python3
    ```
 
-3. Установи зависимости Python для скриптов `script/` (участники чата, дайджест). Используй интерпретатор **3.10–3.13** (например 3.12); **не используй Python 3.14** — при импорте Pyrogram возможна ошибка event loop в asyncio.
+3. Установи зависимости Python для скриптов `script/` (участники чата, дайджест). Поддерживаются **Python 3.10–3.14**. В `requirements.txt` указан пакет [kurigram](https://pypi.org/project/kurigram/) — поддерживаемый форк Pyrogram с тем же API (`from pyrogram import Client`); официальный `pyrogram` на PyPI больше не обновляется и на 3.14 ломается.
 
    ```bash
-   python3.12 -m venv venv
+   python3 -m venv venv
    ./venv/bin/pip install -r requirements.txt
    ```
 
-   На macOS, если `python3` указывает на 3.14, установи 3.12 (`brew install python@3.12`) и создавай venv явно через `python3.12`.
-
-   На сервере продакшена обычно используется тот же каталог с `venv/` рядом с jar. Локально можно вместо venv указать системный Python через `PYTHON_PATH` в `.env`, если пакет `pyrogram` уже установлен в подходящей версии Python.
+   На сервере продакшена обычно используется тот же каталог с `venv/` рядом с jar. Локально можно вместо venv указать системный Python через `PYTHON_PATH` в `.env`, если kurigram уже установлен в нужной версии Python.
 
 4. Убедись, что у тебя есть файл с вопросами:  
    `src/main/resources/questions.json`
