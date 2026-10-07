@@ -365,6 +365,7 @@ paket-files/
 .fake/
 .cr/personal
 __pycache__/
+venv/
 *.pyc
 *.tss
 *.jmconfig
