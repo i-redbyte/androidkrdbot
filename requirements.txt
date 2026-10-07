@@ -1,4 +1,4 @@
-# Python 3.10–3.13 (Pyrogram is not compatible with 3.14 as of now)
-pyrogram>=2.0.0
-# Optional speed-up; if pip build fails on your platform, omit — Pyrogram works without it
+# Python 3.10–3.14. kurigram is a maintained drop-in for PyPI pyrogram (import: from pyrogram import Client).
+kurigram>=2.2.14
+# Optional speed-up; if pip build fails on your platform, omit — works without it
 tgcrypto>=1.2.5
