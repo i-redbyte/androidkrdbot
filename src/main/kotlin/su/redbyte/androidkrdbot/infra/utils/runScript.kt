@@ -8,8 +8,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import su.redbyte.androidkrdbot.domain.usecase.FetchComradesUseCase
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 private const val DIGEST = "digest.py"
+private const val SCRIPT_TIMEOUT_MINUTES = 15L
 private const val MEMBERS_EXPORTER = "members_exporter.py"
 private const val SESSION_FILE = "bot_auth"
 suspend fun fetchComrades(apiId: String, apiHash: String): List<Comrade> = withContext(Dispatchers.IO) {
@@ -50,22 +52,37 @@ private fun processScript(apiId: String, apiHash: String, scriptName: String): S
         .directory(baseDir)
         .redirectErrorStream(true)
         .start()
-    val exitCode = process.waitFor()
-    val output = process.inputStream.bufferedReader().readText()
-    val errorOutput = process.errorStream.bufferedReader().readText()
-    if (errorOutput.isNotEmpty() || exitCode != 0) {
-        println("Error output:\n$errorOutput")
-        println("Exit code: $exitCode")
-        if (exitCode != 0) {
-            val fullOutput = """
-            Exit code: $exitCode
-            Stdout:
-            $output
-            Stderr:
-            $errorOutput
-        """.trimIndent()
-            error("Failed to fetch members. Output:\n$fullOutput")
+
+    val outputBuffer = StringBuilder()
+    val reader = Thread {
+        process.inputStream.bufferedReader().use { reader ->
+            reader.forEachLine { line ->
+                outputBuffer.appendLine(line)
+            }
         }
+    }.apply { isDaemon = true; start() }
+
+    val finished = process.waitFor(SCRIPT_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+    reader.join(5_000)
+
+    if (!finished) {
+        process.destroyForcibly()
+        reader.join(5_000)
+        error(
+            "Python-скрипт $scriptName не завершился за $SCRIPT_TIMEOUT_MINUTES мин. " +
+                "Частая причина: зависание Pyrogram/kurigram или переполнение буфера вывода."
+        )
+    }
+
+    val output = outputBuffer.toString()
+    val exitCode = process.exitValue()
+    if (exitCode != 0) {
+        val fullOutput = """
+            Exit code: $exitCode
+            Output:
+            $output
+        """.trimIndent()
+        error("Скрипт $scriptName завершился с ошибкой. Output:\n$fullOutput")
     }
     return output
 }

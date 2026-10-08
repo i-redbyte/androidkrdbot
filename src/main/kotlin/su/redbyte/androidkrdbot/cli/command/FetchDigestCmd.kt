@@ -1,5 +1,6 @@
 package su.redbyte.androidkrdbot.cli.command
 
+import com.github.kotlintelegrambot.entities.ParseMode
 import kotlinx.coroutines.CoroutineScope
 import su.redbyte.androidkrdbot.domain.usecase.FetchDigestUseCase
 import su.redbyte.androidkrdbot.infra.schedulers.DailyTaskScheduler
@@ -67,7 +68,7 @@ class FetchDigestCmd(
             "status" -> {
                 if (dailyTaskScheduler?.isRunning == true) {
                     ctx.reply(
-                        "Дайджест запущен. Время: %02d:%02d".format(
+                        "Дайджест запущен. Время: %02d:%02d (МСК, см. DIGEST_TIMEZONE)".format(
                             dailyTaskScheduler!!.hour,
                             dailyTaskScheduler!!.minute
                         )
@@ -76,6 +77,18 @@ class FetchDigestCmd(
                     ctx.reply("Дайджест остановлен.")
                 }
             }
+
+            "now" -> {
+                ctx.reply("⏳ Собираю разведданные…")
+                val text = fetchDigest().trim()
+                val message = if (text.isEmpty() || text == FetchDigestUseCase.NO_NEW) {
+                    "В нашей агентурной сети пока нет новой информации. Продолжаем вести наблюдение 👀"
+                } else {
+                    text
+                }
+                ctx.reply(message, ParseMode.MARKDOWN)
+            }
+
             "help" -> {
                 ctx.reply(buildHelpText())
             }
@@ -92,7 +105,10 @@ class FetchDigestCmd(
         /digest stop – остановить отправку дайджеста
         /digest time HH mm – изменить время рассылки
         /digest status – показать текущий статус
+        /digest now – отправить дайджест сразу (проверка скрипта)
         /digest help – показать эту справку
+        
+        Время указывается по Europe/Moscow (переменная DIGEST_TIMEZONE в .env).
         
         Пример: /digest start 10 15
     """.trimIndent()
