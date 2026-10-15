@@ -1,126 +1,179 @@
 package su.redbyte.androidkrdbot.data.repository
 
-import kotlinx.coroutines.*
-import su.redbyte.androidkrdbot.data.model.markov.BiKey
-import su.redbyte.androidkrdbot.data.model.markov.CumulativeNext
-import su.redbyte.androidkrdbot.infra.utils.detectBaseDir
-import java.io.File
-import java.nio.file.Files
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlin.math.ln
 import kotlin.random.Random
 
-private const val START = "<START>"
 private const val END = "<END>"
+private const val MARKOV_ORDER = 5
+private val TOKEN = Regex("[\\p{L}\\p{N}]+|[^\\s]")
+private val WORD = Regex("[\\p{L}\\p{N}]+")
+private val STOP_WORDS = setOf(
+    "а", "без", "бы", "в", "во", "для", "до", "его", "ее", "её", "же", "за", "и", "из", "или",
+    "к", "как", "на", "не", "но", "о", "об", "он", "она", "они", "от", "по", "при", "с", "со",
+    "так", "то", "у", "что", "это", "такое", "такая", "такой", "такие", "какое", "какая",
+    "какой", "какие", "зачем", "почему", "дела", "дело", "деле", "делу"
+)
 
+private data class Sentence(val tokens: List<String>, val keywords: Set<String>) {
+    val wordCount: Int = tokens.count { WORD.matches(it) }
+}
+
+/** Sentence retrieval plus an optional sentence-bounded Markov model. */
 class MarkovRepository private constructor(
-    private val chain: Map<BiKey, WeightedOptions>,
-    private val startingKeys: List<BiKey>
+    private val chain: Map<List<String>, WeightedOptions>,
+    private val sentences: List<Sentence>,
+    private val documentFrequency: Map<String, Int>
 ) {
+    /** Select an intact passage for a mention. */
+    fun generate(prompt: String = "", maxWords: Int = 45, random: Random = Random.Default): String =
+        render(selectSource(prompt, maxWords, random).tokens)
 
-    fun generate(seed: List<String>? = null, maxTokens: Int = 1200): String {
-        require(maxTokens >= 2) { "maxTokens must be at least 2" }
+    /** Optional playful mode: a Markov walk that can mix passages. */
+    fun generateMarkov(prompt: String = "", maxWords: Int = 45, random: Random = Random.Default): String {
+        val pool = selectPool(prompt, maxWords)
+        repeat(8) {
+            val source = pool.random(random)
+            val generated = walk(source.tokens.take(MARKOV_ORDER), maxWords, random)
+            if (generated != null) return render(generated)
+        }
+        return render(pool.random(random).tokens)
+    }
 
-        var current: BiKey = when {
-            seed != null && seed.size >= 2 -> BiKey(seed[seed.size - 2], seed.last())
-            seed != null && seed.size == 1 -> {
-                val candidates = chain.keys.filter { it.first == seed.first() }
-                if (candidates.isNotEmpty()) candidates.random() else startingKeys.random()
+    private fun selectSource(prompt: String, maxWords: Int, random: Random): Sentence =
+        selectPool(prompt, maxWords).random(random)
+
+    private fun selectPool(prompt: String, maxWords: Int): List<Sentence> {
+        require(maxWords >= 8) { "maxWords must be at least 8" }
+        val candidates = sentences.filter { it.wordCount in 8..maxWords && render(it.tokens).length <= 900 }
+        require(candidates.isNotEmpty()) { "No sentences fit the requested length" }
+
+        val query = keywords(tokenize(prompt))
+        val fallback = candidates.filter {
+            it.wordCount <= 22 && it.tokens.first().lowercase() !in
+                setOf("это", "этот", "эта", "но", "однако", "вот", "таким")
+        }.ifEmpty { candidates }
+        if (query.isEmpty()) return fallback
+        val lowerPrompt = prompt.lowercase()
+        val definitionQuestion = lowerPrompt.contains("что такое")
+        val purposeQuestion = lowerPrompt.contains("зачем") || lowerPrompt.contains("почему")
+        val exactQueryWords = tokenize(prompt).map { it.lowercase().replace('ё', 'е') }.toSet()
+        val scored = candidates.map { sentence ->
+            val overlap = query.intersect(sentence.keywords)
+            var score = overlap.sumOf { term ->
+                ln(1.0 + sentences.size.toDouble() / (documentFrequency[term] ?: 1))
             }
-
-            else -> startingKeys.random()
+            val firstKeyword = sentence.tokens.firstOrNull()?.lowercase()?.replace('ё', 'е')?.take(5)
+            if (firstKeyword in overlap) {
+                score += 1.0
+                if (definitionQuestion &&
+                    sentence.tokens.first().lowercase().replace('ё', 'е') in exactQueryWords &&
+                    sentence.tokens.drop(1).take(3).any {
+                        it.lowercase() in setOf("есть", "—", "является", "представляет")
+                    }
+                ) score += 5.0
+                if (purposeQuestion && sentence.tokens.any {
+                    it.lowercase() in setOf("для", "чтобы", "необходимо", "нужно", "должна", "должен")
+                }) score += 2.0
+            }
+            if (sentence.tokens.first().lowercase() in setOf("это", "этот", "эта", "но", "однако", "вот")) {
+                score *= 0.5
+            }
+            score /= 1.0 + (sentence.wordCount - 24).coerceAtLeast(0) * 0.03
+            sentence to score
         }
-
-        val result = mutableListOf<String>()
-        if (current.first != START) result += current.first
-        result += current.second
-
-        repeat(maxTokens - result.size) {
-            val options = chain[current] ?: return@repeat
-            val nextTok = options.drawRandom()
-            if (nextTok == END) return@repeat
-            result += nextTok
-            current = BiKey(current.second, nextTok)
+        val best = scored.maxOf { it.second }
+        return if (best > 0.0) {
+            scored.filter { it.second >= best * 0.9 }.sortedByDescending { it.second }.take(5).map { it.first }
+        } else {
+            fallback
         }
+    }
 
-        return result.joinToString(" ")
-            .replace("\\s+([,.!?;:])".toRegex(), "$1")
-            .replace(" +".toRegex(), " ")
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+    private fun walk(start: List<String>, maxWords: Int, random: Random): List<String>? {
+        val result = start.toMutableList()
+        repeat(maxWords * 4) {
+            val next = chain[result.takeLast(MARKOV_ORDER)]
+                ?.draw(random) ?: return null
+            if (next == END) {
+                return if (result.last() in setOf(".", "!", "?")) result else null
+            }
+            result += next
+            if (result.count { WORD.matches(it) } > maxWords || render(result).length > 900) return null
+        }
+        return null
     }
 
     companion object {
-
-        suspend fun load(
-            fileName: String = "clean_code_tokenized.txt",
-            scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        ): MarkovRepository = withContext(scope.coroutineContext) {
-            val baseDir = detectBaseDir().toString()
-            val corpusPath = File(baseDir, "markov/$fileName").toPath()
-            val tokens = tokenize(Files.readString(corpusPath))
-            val (chain, starts) = train(tokens)
-            MarkovRepository(chain, starts)
+        suspend fun load(fileName: String = "lenin_sentences.txt"): MarkovRepository = withContext(Dispatchers.IO) {
+            val stream = MarkovRepository::class.java.classLoader
+                .getResourceAsStream("markov/$fileName")
+                ?: error("Missing book corpus: markov/$fileName")
+            fromSentences(stream.bufferedReader(Charsets.UTF_8).use { it.readLines() })
         }
 
-        private fun tokenize(text: String): List<String> {
-            val rawTokens = text.split(Regex("\\s+")).filter { it.isNotEmpty() }
-            val punctuation = setOf(".", "!", "?")
-            return buildList {
-                add(START)
-                rawTokens.forEach { tok ->
-                    add(tok)
-                    if (tok in punctuation) {
-                        add(END)
-                        add(START)
-                    }
-                }
-                if (last() != END) add(END)
-            }
-        }
+        fun fromSentences(lines: List<String>): MarkovRepository {
+            val sentences = lines.map(::tokenize)
+                .filter { it.size > MARKOV_ORDER && it.last() in setOf(".", "!", "?") }
+                .map { Sentence(it, keywords(it)) }
+            require(sentences.isNotEmpty()) { "The corpus has no complete sentences" }
 
-        private fun train(tokens: List<String>):
-                Pair<Map<BiKey, WeightedOptions>, List<BiKey>> {
-
-            val counts = mutableMapOf<BiKey, MutableMap<String, Int>>()
-
-            for (i in 0 until tokens.size - 2) {
-                val key = BiKey(tokens[i], tokens[i + 1])
-                val next = tokens[i + 2]
-                counts.getOrPut(key) { mutableMapOf() }
-                    .merge(next, 1, Int::plus)
-            }
-
-            val chain = buildMap {
-                counts.forEach { (key, freqMap) ->
-                    var cumulative = 0
-                    val cumulativeList = freqMap
-                        .map { (tok, cnt) ->
-                            cumulative += cnt
-                            CumulativeNext(tok, cumulative)
-                        }
-                        .sortedBy { it.cumulativeWeight }
-                    put(key, WeightedOptions(cumulativeList, cumulative))
+            val frequencies = mutableMapOf<String, Int>()
+            val transitions = mutableMapOf<List<String>, MutableMap<String, Int>>()
+            sentences.forEach { sentence ->
+                sentence.keywords.forEach { frequencies.merge(it, 1, Int::plus) }
+                val tokens = sentence.tokens
+                for (index in 0..tokens.size - MARKOV_ORDER) {
+                    val key = tokens.subList(index, index + MARKOV_ORDER).toList()
+                    val next = tokens.getOrElse(index + MARKOV_ORDER) { END }
+                    transitions.getOrPut(key) { mutableMapOf() }.merge(next, 1, Int::plus)
                 }
             }
-
-            val startingKeys = chain.keys.filter { it.first == START }
-
-            return chain to startingKeys
+            return MarkovRepository(transitions.mapValues { WeightedOptions(it.value) }, sentences, frequencies)
         }
+
+        private fun tokenize(text: String): List<String> = TOKEN.findAll(text).map { it.value }.toList()
+
+        private fun keywords(tokens: List<String>): Set<String> = tokens.asSequence()
+            .filter { WORD.matches(it) && (it.length >= 4 || it.lowercase().startsWith("код")) }
+            .map {
+                val word = it.lowercase().replace('ё', 'е')
+                if (word.startsWith("код")) "код" else word.take(5)
+            }
+            .filterNot { it in STOP_WORDS }
+            .toSet()
+
+        private fun render(tokens: List<String>): String = tokens.joinToString(" ")
+            .replace(Regex("\\s+([,.!?;:%»\\]\\)])"), "$1")
+            .replace(Regex("([«\\[(])\\s+"), "$1")
+            .replace(Regex("(?<=\\p{L})\\s+-\\s+(?=\\p{L})"), "-")
+            .replace(Regex("\\s+"), " ")
+            .trim()
     }
 }
 
-private class WeightedOptions(
-    private val cumulative: List<CumulativeNext>,
-    private val totalWeight: Int
-) {
-    fun drawRandom(rnd: Random = Random.Default): String {
-        val target = rnd.nextInt(totalWeight)
+private class WeightedOptions(frequencies: Map<String, Int>) {
+    private val cumulative: List<Pair<String, Int>>
+    private val total: Int
+
+    init {
+        var weight = 0
+        cumulative = frequencies.map { (token, count) ->
+            weight += count
+            token to weight
+        }
+        total = weight
+    }
+
+    fun draw(random: Random): String {
+        val value = random.nextInt(total)
         var low = 0
         var high = cumulative.lastIndex
         while (low < high) {
-            val mid = (low + high) ushr 1
-            if (target < cumulative[mid].cumulativeWeight) high = mid
-            else low = mid + 1
+            val middle = (low + high) ushr 1
+            if (value < cumulative[middle].second) high = middle else low = middle + 1
         }
-        return cumulative[low].token
+        return cumulative[low].first
     }
 }

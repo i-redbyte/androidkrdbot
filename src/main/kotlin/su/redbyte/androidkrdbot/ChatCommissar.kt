@@ -35,7 +35,12 @@ fun main() = runBlocking {
     val interrogationRepo = InterrogationRepository()
     val comradesRepo = ComradesRepository(apiId, apiHash)
     val digestRepo = DigestRepository(apiId, apiHash)
-    val markovRepo = MarkovRepository.load()
+    val bookReplies = BookReplyRepository(
+        listOf(
+            BookCorpus("Государство и революция", MarkovRepository.load("lenin_sentences.txt")),
+            BookCorpus("Чистый код", MarkovRepository.load("clean_code_sentences.txt"))
+        )
+    )
     val libraryRepo = LibraryRepository()
 
     val getRandomQuestion = GetRandomQuestionUseCase(questionRepo)
@@ -90,6 +95,7 @@ fun main() = runBlocking {
             appScope,
             fetchComrades,
         ),
+        ReplyToMessageListener(bookReplies, verificationRepo),
         AnswerListener(
             checkAnswer,
             getRandomQuestion,
@@ -97,8 +103,7 @@ fun main() = runBlocking {
             verificationRepo,
             comradesRepo,
             checkBan
-        ),
-        ReplyToMessageListener(markovRepo)
+        )
     )
     val newComradeListener = listOf(
         CleanupLeftMemberListener(verificationRepo),

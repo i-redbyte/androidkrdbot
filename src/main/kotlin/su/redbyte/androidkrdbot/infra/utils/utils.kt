@@ -79,11 +79,18 @@ fun Bot.banUser(
     }
 }
 
-fun Message.containsBotMention(botUserName: String): Boolean =
-    entities
-        ?.filter { it.type == MessageEntity.Type.MENTION }
-        ?.any { text?.substring(it.offset, it.offset + it.length) == "@$botUserName" }
-        ?: false
+fun Message.containsBotMention(botUserName: String): Boolean {
+    if (botUserName.isEmpty()) return false
+    val messageText = text ?: return false
+    return entities.orEmpty().any { entity ->
+        entity.type == MessageEntity.Type.MENTION &&
+            entity.offset >= 0 &&
+            entity.length == botUserName.length + 1 &&
+            entity.offset + entity.length <= messageText.length &&
+            messageText.substring(entity.offset, entity.offset + entity.length)
+                .equals("@$botUserName", ignoreCase = true)
+    }
+}
 
 private fun escapeMarkdownV2(text: String): String {
     return text.replace(Regex("""([_*\[\]()~`>#+\-=|{}.!\\])""")) { "\\${it.value}" }

@@ -1,26 +1,31 @@
 package su.redbyte.androidkrdbot.cli.message
 
-import su.redbyte.androidkrdbot.data.repository.MarkovRepository
+import su.redbyte.androidkrdbot.data.repository.BookReplyRepository
+import su.redbyte.androidkrdbot.data.repository.VerificationRepository
 import su.redbyte.androidkrdbot.infra.utils.containsBotMention
-import java.security.SecureRandom
 
 class ReplyToMessageListener(
-    private val markov: MarkovRepository
+    private val bookReplies: BookReplyRepository,
+    private val verificationRepository: VerificationRepository
 ) : MessageListener {
-    val secureRandom = SecureRandom()
     override suspend fun handle(ctx: MessageContext) {
-        val botUserName = ctx.bot.getMe().get().username ?: ""
-        if (!ctx.message.containsBotMention(botUserName)) return
-        //todo example for seed example
-//        val cleanText = ctx.message.text
-//            ?.replace("@$botUserName", "", ignoreCase = true)
-//            ?.trim()
-//            ?.split(' ')
-//            ?: emptyList()
-//        println(cleanText)
+        if (ctx.message.from?.id?.let(verificationRepository::contains) == true) return
+        val botUser = ctx.bot.getMe().get()
+        val botUserName = botUser.username.orEmpty()
+        val isReplyToBot = ctx.message.replyToMessage?.from?.id == botUser.id
+        val mentionsBot = ctx.message.containsBotMention(botUserName)
+        if (!isReplyToBot && !mentionsBot) return
 
-        val n: Int = secureRandom.nextInt(130_000) + 1200
-        println("n == $n")
-        ctx.reply(markov.generate(maxTokens = n))
+        val messageText = ctx.message.text ?: return
+        val prompt = messageText
+            .let { text ->
+                if (botUserName.isNotEmpty()) {
+                    text.replace(Regex("@" + Regex.escape(botUserName), RegexOption.IGNORE_CASE), "")
+                } else {
+                    text
+                }
+            }
+            .trim()
+        ctx.reply(if (isReplyToBot) bookReplies.markov(prompt) else bookReplies.quote(prompt))
     }
 }
