@@ -21,6 +21,7 @@ class AnswerListener(
 
     override suspend fun handle(ctx: MessageContext) {
         val message = ctx.message
+        if (message.chat.type == "private") return
         val from: User = message.from ?: return
         val myId = ctx.bot.getMe().get().id
         if (from.id == myId) return

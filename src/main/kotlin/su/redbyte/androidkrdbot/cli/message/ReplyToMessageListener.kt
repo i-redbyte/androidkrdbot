@@ -9,14 +9,17 @@ class ReplyToMessageListener(
     private val verificationRepository: VerificationRepository
 ) : MessageListener {
     override suspend fun handle(ctx: MessageContext) {
-        if (ctx.message.from?.id?.let(verificationRepository::contains) == true) return
+        val isPrivateChat = ctx.message.chat.type == "private"
+        if (!isPrivateChat && ctx.message.from?.id?.let(verificationRepository::contains) == true) return
+        val messageText = ctx.message.text ?: return
+        if (isPrivateChat && messageText.startsWith("/")) return
         val botUser = ctx.bot.getMe().get()
+        if (ctx.message.from?.id == botUser.id) return
         val botUserName = botUser.username.orEmpty()
         val isReplyToBot = ctx.message.replyToMessage?.from?.id == botUser.id
         val mentionsBot = ctx.message.containsBotMention(botUserName)
-        if (!isReplyToBot && !mentionsBot) return
+        if (!isPrivateChat && !isReplyToBot && !mentionsBot) return
 
-        val messageText = ctx.message.text ?: return
         val prompt = messageText
             .let { text ->
                 if (botUserName.isNotEmpty()) {

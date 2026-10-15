@@ -12,10 +12,12 @@ class BookReplyRepository(private val books: List<BookCorpus>) {
     private val nextQuote = AtomicInteger()
     private val nextMarkov = AtomicInteger()
 
-    fun quote(prompt: String): String = choose(nextQuote).model.generate(prompt)
+    fun quote(prompt: String): String = choose(prompt, nextQuote).model.generate(prompt)
 
-    fun markov(prompt: String): String = choose(nextMarkov).model.generateMarkov(prompt)
+    fun markov(prompt: String): String = choose(prompt, nextMarkov).model.generateMarkov(prompt)
 
-    private fun choose(counter: AtomicInteger): BookCorpus =
-        books[Math.floorMod(counter.getAndIncrement(), books.size)]
+    private fun choose(prompt: String, counter: AtomicInteger): BookCorpus {
+        val best = books.map { it to it.model.relevance(prompt) }.maxBy { it.second }
+        return if (best.second > 0.0) best.first else books[Math.floorMod(counter.getAndIncrement(), books.size)]
+    }
 }

@@ -4,6 +4,10 @@ enum class Commands(
     val commandName: String,
     val description: String
 ) {
+    START(
+        commandName = "start",
+        description = "Узнать, как общаться с ботом в личке"
+    ),
     START_VERIFICATION(
         commandName = "startVerification",
         description = "Запустить проверку новых людей на спам"

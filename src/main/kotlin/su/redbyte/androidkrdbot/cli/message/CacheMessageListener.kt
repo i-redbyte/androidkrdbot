@@ -8,6 +8,7 @@ class CacheMessageListener(
     private val checkBan: CheckBanUseCase
 ) : MessageListener {
     override suspend fun handle(ctx: MessageContext) {
+        if (ctx.message.chat.type == "private") return
         val userId = ctx.message.from?.id ?: return
         val chatId = ctx.rawChatId
         val messageId = ctx.message.messageId

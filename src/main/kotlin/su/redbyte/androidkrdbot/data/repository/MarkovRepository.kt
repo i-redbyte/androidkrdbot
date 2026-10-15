@@ -44,22 +44,37 @@ class MarkovRepository private constructor(
     private fun selectSource(prompt: String, maxWords: Int, random: Random): Sentence =
         selectPool(prompt, maxWords).random(random)
 
+    /** Best match in this book; zero means none of the prompt's keywords occur in a usable sentence. */
+    fun relevance(prompt: String, maxWords: Int = 45): Double =
+        scoreCandidates(prompt, maxWords).maxOf { it.second }
+
     private fun selectPool(prompt: String, maxWords: Int): List<Sentence> {
+        val scored = scoreCandidates(prompt, maxWords)
+        val candidates = scored.map { it.first }
+        val fallback = candidates.filter {
+            it.wordCount <= 22 && it.tokens.first().lowercase() !in
+                setOf("это", "этот", "эта", "но", "однако", "вот", "таким")
+        }.ifEmpty { candidates }
+        val best = scored.maxOf { it.second }
+        return if (best > 0.0) {
+            scored.filter { it.second >= best * 0.9 }.sortedByDescending { it.second }.take(5).map { it.first }
+        } else {
+            fallback
+        }
+    }
+
+    private fun scoreCandidates(prompt: String, maxWords: Int): List<Pair<Sentence, Double>> {
         require(maxWords >= 8) { "maxWords must be at least 8" }
         val candidates = sentences.filter { it.wordCount in 8..maxWords && render(it.tokens).length <= 900 }
         require(candidates.isNotEmpty()) { "No sentences fit the requested length" }
 
         val query = keywords(tokenize(prompt))
-        val fallback = candidates.filter {
-            it.wordCount <= 22 && it.tokens.first().lowercase() !in
-                setOf("это", "этот", "эта", "но", "однако", "вот", "таким")
-        }.ifEmpty { candidates }
-        if (query.isEmpty()) return fallback
+        if (query.isEmpty()) return candidates.map { it to 0.0 }
         val lowerPrompt = prompt.lowercase()
         val definitionQuestion = lowerPrompt.contains("что такое")
         val purposeQuestion = lowerPrompt.contains("зачем") || lowerPrompt.contains("почему")
         val exactQueryWords = tokenize(prompt).map { it.lowercase().replace('ё', 'е') }.toSet()
-        val scored = candidates.map { sentence ->
+        return candidates.map { sentence ->
             val overlap = query.intersect(sentence.keywords)
             var score = overlap.sumOf { term ->
                 ln(1.0 + sentences.size.toDouble() / (documentFrequency[term] ?: 1))
@@ -82,12 +97,6 @@ class MarkovRepository private constructor(
             }
             score /= 1.0 + (sentence.wordCount - 24).coerceAtLeast(0) * 0.03
             sentence to score
-        }
-        val best = scored.maxOf { it.second }
-        return if (best > 0.0) {
-            scored.filter { it.second >= best * 0.9 }.sortedByDescending { it.second }.take(5).map { it.first }
-        } else {
-            fallback
         }
     }
 

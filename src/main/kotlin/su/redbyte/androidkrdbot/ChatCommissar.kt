@@ -75,6 +75,7 @@ fun main() = runBlocking {
         fetchComrades.invalidateFromCache(userId)
     }
     val commands = listOf(
+        StartCmd(),
         StartVerificationCmd(verificationState),
         StopVerificationCmd(verificationState),
         VerificationStatusCmd(verificationState),
