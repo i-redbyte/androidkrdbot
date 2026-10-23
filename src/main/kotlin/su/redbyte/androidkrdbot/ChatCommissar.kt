@@ -53,6 +53,7 @@ fun main() = runBlocking {
     val searchArticles = SearchArticlesUseCase()
     val fetchLibraryUpdates = FetchLibraryUpdatesUseCase(libraryRepo)
     val fetchDigest = FetchDigestUseCase(digestRepo)
+    val digestCommand = FetchDigestCmd(appScope, fetchDigest)
     val verificationState = VerificationState
 
     appScope.launch {
@@ -83,7 +84,7 @@ fun main() = runBlocking {
         InterrogationCmd(appScope, fetchComrades, checkBan),
         CommandListCmd(),
         LootInfoCmd(searchArticles),
-        FetchDigestCmd(appScope, fetchDigest),
+        digestCommand,
         LibUpdatesCmd(fetchLibraryUpdates),
         ShowPolitburoMembersCmd(getAdmins),
         GameCmd(),
@@ -136,5 +137,5 @@ fun main() = runBlocking {
 
     println("🕵️ Товарищ Берия приступил к работе.")
 
-    engine.start()
+    engine.start(digestCommand::startOnStartup)
 }

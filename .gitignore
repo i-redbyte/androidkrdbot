@@ -427,3 +427,4 @@ Temporary Items
 .apdisk
 .aws-sam/
 src/main/resources/markov/clean_code_sentences.txt
+data/digest_schedule.properties

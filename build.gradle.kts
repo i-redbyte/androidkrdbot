@@ -12,6 +12,11 @@ val ktorVersion = "3.1.3"
 
 dependencies {
     implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:6.3.0")
+    // Telegram exposes retrofit2.Response in public signatures; only that type is needed for compilation.
+    // Its runtime dependencies supply Retrofit and resolve OkHttp to 4.12.0.
+    compileOnly("com.squareup.retrofit2:retrofit:2.9.0") {
+        isTransitive = false
+    }
     implementation("io.github.cdimascio:dotenv-kotlin:6.5.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
     implementation("io.ktor:ktor-client-core:$ktorVersion")

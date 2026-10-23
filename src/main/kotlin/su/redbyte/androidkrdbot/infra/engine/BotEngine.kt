@@ -1,5 +1,6 @@
 package su.redbyte.androidkrdbot.infra.engine
 
+import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.command
@@ -64,6 +65,8 @@ class BotEngine(
         }
     }
 
-    fun start() = telegramBot.startPolling()
+    fun start(onStart: (Bot) -> Unit = {}) {
+        onStart(telegramBot)
+        telegramBot.startPolling()
+    }
 }
-

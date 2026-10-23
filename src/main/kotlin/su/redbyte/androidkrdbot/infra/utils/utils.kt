@@ -59,7 +59,7 @@ fun Bot.sendAndCacheMessage(
     }
     val botId = this.getMe().get().id
     response.getOrNull()?.let {
-        MessageCache.add(chatId.rawChatId(), botId, it.messageId)
+        MessageCache.add(it.chat.id, botId, it.messageId)
     }
     return response
 }

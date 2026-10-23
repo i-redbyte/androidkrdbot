@@ -7,15 +7,15 @@ import kotlinx.coroutines.*
 import su.redbyte.androidkrdbot.domain.usecase.FetchDigestUseCase
 import su.redbyte.androidkrdbot.infra.utils.sendAndCacheMessage
 import java.time.*
-import java.util.concurrent.TimeUnit
 
 class DailyTaskScheduler(
     private val scope: CoroutineScope,
     private val fetchDigest: FetchDigestUseCase,
     private val bot: Bot,
     private val chatId: ChatId,
-    var hour: Int = 9,
+    var hour: Int = 11,
     var minute: Int = 30,
+    private val clock: Clock = Clock.system(ZoneId.of("Europe/Moscow")),
 ) {
     val isRunning: Boolean get() = job?.isActive == true
 
@@ -30,7 +30,7 @@ class DailyTaskScheduler(
 
         job = scope.launch {
             while (isActive) {
-                val delayMillis = calculateDelayToNextRun(LocalTime.of(hour, minute))
+                val delayMillis = millisUntilNext(LocalTime.of(hour, minute), clock)
                 println("[DailyTaskScheduler]: Sleeping for ${delayMillis / 1000}s until next run")
                 delay(delayMillis)
 
@@ -42,13 +42,12 @@ class DailyTaskScheduler(
                         text
                     }
                     bot.sendAndCacheMessage(chatId, message, ParseMode.MARKDOWN)
-                    println("[DailyTaskScheduler]: Digest fetch started at ${LocalDateTime.now()} with result:\n$message")
+                    println("[DailyTaskScheduler]: Digest fetch started at ${ZonedDateTime.now(clock)} with result:\n$message")
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     bot.sendAndCacheMessage(chatId, "\uD83D\uDEA8 Ошибка при отправке дайджеста")
                     println("[DailyTaskScheduler]: Ошибка при отправке дайджеста: ${e.localizedMessage}")
                 }
-
-                delay(TimeUnit.DAYS.toMillis(1))
             }
         }
     }
@@ -70,16 +69,11 @@ class DailyTaskScheduler(
         stop()
         start()
     }
-
-    private fun calculateDelayToNextRun(targetTime: LocalTime): Long {
-        val now = LocalDateTime.now()
-        val nextRun = now.toLocalDate()
-            .atTime(targetTime)
-            .let {
-                if (it.isBefore(now)) it.plusDays(1) else it
-            }
-
-        return Duration.between(now, nextRun).toMillis()
-    }
 }
 
+internal fun millisUntilNext(targetTime: LocalTime, clock: Clock): Long {
+    val now = ZonedDateTime.now(clock)
+    val today = now.toLocalDate().atTime(targetTime).atZone(clock.zone)
+    val nextRun = if (today.isAfter(now)) today else today.plusDays(1)
+    return Duration.between(now, nextRun).toMillis()
+}
